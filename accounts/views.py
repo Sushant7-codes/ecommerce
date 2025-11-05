@@ -16,6 +16,7 @@ def retail_admin_register(request):
         form = RetailAdminRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             email = form.cleaned_data.get("email")
+            role = form.cleaned_data.get("role") 
 
             # Check if email already exists
             if User.objects.filter(email=email).exists():
@@ -63,22 +64,24 @@ def retail_admin_register(request):
 
 
 def retail_admin_login(request):
-    
     if request.method == "POST":
-        username=request.POST.get("username")
-        password=request.POST.get("password")
+        username = request.POST.get("username")
+        password = request.POST.get("password")
     
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
-            return redirect("app:dashboard")
-            
+            # REDIRECT BASED ON ROLE
+            if user.is_seller():
+                return redirect('shop:dashboard')  # Goes to /seller/dashboard/
+            else:
+                return redirect('buyer:dashboard')   # Goes to / (homepage)
+                
         messages.error(request, "Invalid username or password")    
         return redirect("accounts:retail_admin_login")
         
     form = RetailAdminLoginForm()
-    
     context = {"form": form}
     return render(request, "accounts/login.html", context)
 

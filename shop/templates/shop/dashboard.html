@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">Seller Dashboard</h1>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-md border">
+            <h3 class="text-lg font-semibold text-gray-700">Total Products</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ total_products }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md border">
+            <h3 class="text-lg font-semibold text-gray-700">Active Products</h3>
+            <p class="text-3xl font-bold text-green-600">{{ active_products }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md border">
+            <h3 class="text-lg font-semibold text-gray-700">Low Stock</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ low_stock_products.count }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white p-6 rounded-lg shadow-md border">
+        <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+        <div class="flex space-x-4">
+            <a href="{% url 'shop:add_product' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                Add New Product
+            </a>
+            <a href="{% url 'shop:product_list' %}" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">
+                View All Products
+            </a>
+            <a href="{% url 'shop:category_list' %}" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                Manage Categories
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

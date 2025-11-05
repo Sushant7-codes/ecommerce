@@ -40,14 +40,12 @@ INSTALLED_APPS = [
     
     'widget_tweaks',
 
-    'common',
+    'shop',
+    'buyer',
     'tailwind',
     'theme',
-    'app',
     'accounts',
 
-    'shop',
-    
     'background_task',
     'django_filters',
 
@@ -66,7 +64,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'project.middlewares.AccountsMiddleware',
+    # 'project.middlewares.AccountsMiddleware',
 ]
 
 

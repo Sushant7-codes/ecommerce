@@ -22,8 +22,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
-    path("", include("app.urls")),
-    # path("shop/", include("shop.urls")),
-    path("shop/", include(("shop.urls", "shop"), namespace="shop")),
-
+    path("", include("buyer.urls")),  # Buyer app (customers)
+    path("seller/", include("shop.urls")),  # NEW: Shop app for sellers
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
