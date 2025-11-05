@@ -13,6 +13,6 @@ urlpatterns = [
     path("forgot-password/", views.forgot_password, name="forgot_password"),
     path("otp-confirmation/", views.otp_confirmation, name="otp_confirmation"),
     path("set-new-password/<int:user_id>/", 
-         views.set_new_password, name="set_new_password"),
+        views.set_new_password, name="set_new_password"),
 ]  
 

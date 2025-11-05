@@ -5,12 +5,13 @@ from django.contrib import messages
 from .utils import is_email_valid, forgot_password_email
 from .models import OTP, CustomUser
 from django.contrib.auth.password_validation import validate_password
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
+
 def retail_admin_register(request):
-    
     if request.method == "POST":
         form = RetailAdminRegisterForm(request.POST, request.FILES)
         if form.is_valid():
@@ -21,38 +22,44 @@ def retail_admin_register(request):
                 messages.error(request, "Email already registered. Please login.")
                 return redirect("accounts:retail_admin_login")
 
-            # Generate OTP for registration
             try:
-                from .models import OTP
+                
                 from .background_tasks import send_otp
                 import random
 
                 otp = random.randint(100000, 999999)
 
-                # Temporarily store form data in session
-                request.session["pending_user_data"] = form.cleaned_data
+                # Copy cleaned data and remove file objects (can't be serialized)
+                pending_data = form.cleaned_data.copy()
+                for key, value in list(pending_data.items()):
+                    if isinstance(value, InMemoryUploadedFile):
+                        pending_data.pop(key)
+
+                # Store only JSON-safe data in session
+                request.session["pending_user_data"] = pending_data
                 request.session["pending_user_password"] = form.cleaned_data.get("password1")
 
                 # Store OTP in session
                 request.session["register_otp"] = str(otp)
 
                 # Send OTP
-                send_otp(email, otp,purpose="register")
+                send_otp(email, otp, purpose="register")
 
                 messages.success(request, f"OTP sent to {email}. Please verify to complete registration.")
                 return redirect("accounts:register_otp_confirmation")
 
             except Exception as e:
-                messages.error(request, str(e))
+                messages.error(request, f"Error: {str(e)}")
                 return redirect("accounts:retail_admin_register")
 
         else:
-            context = {"form": form}
-            return render(request, "accounts/register.html", context)
+            # Invalid form — re-render with errors
+            return render(request, "accounts/register.html", {"form": form})
 
+    # GET request — show empty form
     form = RetailAdminRegisterForm()
-    context = {"form": form}
-    return render(request, "accounts/register.html", context)
+    return render(request, "accounts/register.html", {"form": form})
+
 
 
 def retail_admin_login(request):

@@ -45,9 +45,7 @@ INSTALLED_APPS = [
     'theme',
     'app',
     'accounts',
-    'reports',
-    'inventory',
-    'sales',
+
     'shop',
     
     'background_task',
