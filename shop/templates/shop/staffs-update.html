@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load form_extras %}
+
+{% block title %}Update Staff{% endblock title %}
+
+{% block content %}
+<main class="min-h-screen flex flex-col p-4 md:p-8 w-full bg-gradient-to-br from-base-200 to-base-300 pt-16 mt-15">
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
+        {% for message in messages %}
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                <div class="alert alert-error alert-soft shadow-lg text-white px-4 py-2 rounded-md" role="alert">
+                    <span>{{ message }}</span>
+                </div>
+            {% else %}
+                <div class="alert shadow-lg bg-green-600 text-white px-4 py-2 rounded-md toast-message" role="alert">
+                    <span>{{ message }}</span>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.toast-message').forEach(toast => toast.remove());
+        }, 6000);
+    </script>
+    {% endif %}
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-4xl font-extrabold text-primary mb-1 tracking-tight">Update Staff</h1>
+            <p class="text-base-content/60 text-sm">Edit staff member information</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'shop:staff_detail' staff.id %}" class="btn btn-outline btn-primary gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Details
+            </a>
+            <a href="{% url 'shop:staffs' %}" class="btn btn-outline btn-secondary gap-2">
+                Staff List
+            </a>
+        </div>
+    </div>
+
+    <!-- Update Form -->
+    <div class="max-w-2xl mx-auto w-full">
+        <div class="shadow-2xl rounded-3xl p-8 bg-base-100 border border-primary/10">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-base-content">Edit {{ staff.get_full_name }}</h2>
+            </div>
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <fieldset class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base-content/90">{{ field.label }}</span>
+                    </label>
+                    {{ field|add_class:"input input-bordered w-full focus:input-primary focus:outline-offset-0 transition-all" }}
+                    {% if field.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error font-medium">{{ field.errors|striptags }}</span>
+                    </label>
+                    {% endif %}
+                    {% if field.help_text %}
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">{{ field.help_text }}</span>
+                    </label>
+                    {% endif %}
+                </fieldset>
+                {% endfor %}
+
+                <div class="flex gap-3 justify-end mt-8 pt-6 border-t border-base-300">
+                    <a href="{% url 'shop:staff_detail' staff.id %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-warning shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Update Staff
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</main>
+{% endblock %}

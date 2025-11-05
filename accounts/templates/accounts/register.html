@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block header %}
+{% endblock header %}
+
+{% block content %}
+<div class="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 ">
+
+    <!-- Toast Errors -->
+    <div class="toast toast-end toast-top z-50">
+        {% for error in form.non_field_errors %}
+        <div class="alert alert-error shadow-lg">
+            <span class="font-semibold">{{ error }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Register Card -->
+    <form method="post" enctype="multipart/form-data"
+          class="w-full max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-8 flex flex-col gap-6 animate-fade-in">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <h1 class="text-4xl font-extrabold text-center text-white tracking-wide mb-2">Create Account</h1>
+        <p class="text-gray-300 text-center mb-4">Register to get started</p>
+
+        <!-- Fields -->
+        <div class="space-y-5">
+            {% for field in form %}
+            <div>
+                <label class="block text-gray-200 text-sm font-semibold mb-1">{{ field.label }}</label>
+                <div class="w-full">
+                    {{ field }}
+                </div>
+
+                
+                {% for error in field.errors %}
+                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" 
+                class="btn btn-neutral w-full py-3 text-lg font-semibold rounded-xl shadow-lg hover:scale-105 transition-transform">
+            Register
+        </button>
+
+        <!-- Login link -->
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Already have an account? 
+            <a href="{% url 'accounts:retail_admin_login' %}" 
+               class="text-blue-400 font-semibold hover:underline">Login here</a>
+        </p>
+    </form>
+</div>
+{% endblock %}

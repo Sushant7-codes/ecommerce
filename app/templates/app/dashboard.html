@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% load form_extras %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Add CSS to prevent content from going over header -->
+<style>
+    body {
+        padding-top: 80px; /* Account for fixed header height */
+    }
+    
+    /* Ensure header stays above everything */
+    header {
+        z-index: 9999 !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+    }
+    
+    /* Prevent content from going over header */
+    main {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+
+<main class="flex-grow p-4 sm:p-6 overflow-auto bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    {% if request.user.shop %}
+    <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-gray-800 dark:text-gray-100">Dashboard</h1>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10">
+        <!-- Today's Sales -->
+        <div class="card p-5 rounded-xl shadow-lg border-l-8 border-green-500 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white dark:bg-gray-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Today's Sales</h2>
+                    <p class="text-2xl sm:text-3xl font-bold text-green-600">Rs. 45,250</p>
+                    <p class="text-sm text-green-500 mt-1">+12.5% from yesterday</p>
+                </div>
+                <div class="text-3xl sm:text-4xl text-green-400">📈</div>
+            </div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="card p-5 rounded-xl shadow-lg border-l-8 border-blue-500 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white dark:bg-gray-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Total Orders</h2>
+                    <p class="text-2xl sm:text-3xl font-bold text-blue-600">127</p>
+                    <p class="text-sm text-blue-500 mt-1">+8.3% from yesterday</p>
+                </div>
+                <div class="text-3xl sm:text-4xl text-blue-400">🛒</div>
+            </div>
+        </div>
+
+        <!-- Low Stock Items -->
+        <div class="card p-5 rounded-xl shadow-lg border-l-8 border-orange-500 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white dark:bg-gray-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Low Stock Items</h2>
+                    <p class="text-2xl sm:text-3xl font-bold text-orange-600">23</p>
+                    <p class="text-sm text-orange-500 mt-1">⚠️ Needs attention</p>
+                </div>
+                <div class="text-3xl sm:text-4xl text-orange-400">📦</div>
+            </div>
+        </div>
+
+        <!-- Total Products -->
+        <div class="card p-5 rounded-xl shadow-lg border-l-8 border-purple-500 transition-transform transform hover:scale-105 hover:shadow-2xl bg-white dark:bg-gray-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Total Products</h2>
+                    <p class="text-2xl sm:text-3xl font-bold text-purple-600">1,847</p>
+                    <p class="text-sm text-gray-500 mt-1">📋 Active inventory</p>
+                </div>
+                <div class="text-3xl sm:text-4xl text-purple-400">🏪</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-10">
+        <!-- Daily Sales Chart -->
+        <div class="card p-5 rounded-xl shadow-lg bg-white dark:bg-gray-800">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2 sm:mb-0">Daily Sales (Last 7 Days)</h2>
+                <select class="select select-bordered select-sm border-gray-300 dark:bg-gray-700 dark:text-gray-100">
+                    <option>Last 7 Days</option>
+                    <option>Last 30 Days</option>
+                    <option>Last 3 Months</option>
+                </select>
+            </div>
+            <div class="w-full overflow-x-auto">
+                <canvas id="dailySalesChart" width="400" height="250"></canvas>
+            </div>
+        </div>
+
+        <!-- Sales by Category Chart -->
+        <div class="card p-5 rounded-xl shadow-lg bg-white dark:bg-gray-800">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Sales by Category</h2>
+            <div class="w-full overflow-x-auto">
+                <canvas id="categorySalesChart" width="400" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts and Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <!-- Payment Methods -->
+        <div class="card p-5 rounded-xl shadow-lg bg-white dark:bg-gray-800">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Payment Methods</h2>
+            <div class="w-full overflow-x-auto">
+                <canvas id="paymentMethodsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Selling Products -->
+        <div class="card p-5 rounded-xl shadow-lg bg-white dark:bg-gray-800 overflow-hidden">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Top Selling Products</h2>
+            <div class="space-y-3 max-h-64 overflow-y-auto">
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors bg-gray-50 dark:bg-gray-900">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">Premium Coffee Beans</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">45 units sold</p>
+                    </div>
+                    <span class="text-green-600 font-bold ml-2">Rs. 6,750</span>
+                </div>
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors bg-gray-50 dark:bg-gray-900">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">Organic Tea Blend</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">38 units sold</p>
+                    </div>
+                    <span class="text-green-600 font-bold ml-2">Rs. 4,560</span>
+                </div>
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors bg-gray-50 dark:bg-gray-900">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">Artisan Chocolates</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">32 units sold</p>
+                    </div>
+                    <span class="text-green-600 font-bold ml-2">Rs. 3,840</span>
+                </div>
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors bg-gray-50 dark:bg-gray-900">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">Fresh Pastries</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">29 units sold</p>
+                    </div>
+                    <span class="text-green-600 font-bold ml-2">Rs. 2,900</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card p-5 rounded-xl shadow-lg bg-white dark:bg-gray-800 overflow-hidden">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Recent Transactions</h2>
+            <div class="space-y-3 max-h-64 overflow-y-auto">
+                <div class="flex items-center justify-between p-3 border-l-4 border-green-500 rounded transition-colors bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">#TXN-001234</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">2 items • Cash</p>
+                    </div>
+                    <span class="text-green-600 font-bold ml-2">Rs. 850</span>
+                </div>
+                <div class="flex items-center justify-between p-3 border-l-4 border-blue-500 rounded transition-colors bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">#TXN-001235</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">5 items • Card</p>
+                    </div>
+                    <span class="text-blue-600 font-bold ml-2">Rs. 1,250</span>
+                </div>
+                <div class="flex items-center justify-between p-3 border-l-4 border-purple-500 rounded transition-colors bg-purple-50 dark:bg-purple-900 hover:bg-purple-100 dark:hover:bg-purple-800">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">#TXN-001236</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">3 items • UPI</p>
+                    </div>
+                    <span class="text-purple-600 font-bold ml-2">Rs. 675</span>
+                </div>
+                <div class="flex items-center justify-between p-3 border-l-4 border-orange-500 rounded transition-colors bg-orange-50 dark:bg-orange-900 hover:bg-orange-100 dark:hover:bg-orange-800">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-gray-700 dark:text-gray-200 truncate">#TXN-001237</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">1 item • Cash</p>
+                    </div>
+                    <span class="text-orange-600 font-bold ml-2">Rs. 320</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Chart.js Script -->
+<script>
+    // Store chart instances globally
+    let dailySalesChart = null;
+    let categorySalesChart = null;
+    let paymentMethodsChart = null;
+    
+    // Function to get chart colors based on theme
+    function getChartColors() {
+        const isDark = document.documentElement.classList.contains('dark');
+        return {
+            textColor: isDark ? '#e5e7eb' : '#374151',
+            gridColor: isDark ? 'rgba(55, 65, 81, 0.3)' : 'rgba(209, 213, 219, 0.5)',
+            backgroundColor: isDark ? 'rgba(31, 41, 55, 0.5)' : 'rgba(249, 250, 251, 0.5)'
+        };
+    }
+    
+    // Initialize charts
+    function initializeCharts() {
+        const colors = getChartColors();
+        
+        // Daily Sales Chart
+        const dailySalesCtx = document.getElementById('dailySalesChart');
+        if (dailySalesCtx) {
+            dailySalesChart = new Chart(dailySalesCtx.getContext('2d'), {
+                type: 'line',
+                data: { 
+                    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], 
+                    datasets:[{ 
+                        label:'Daily Sales (Rs.)', 
+                        data:[32000,28000,35000,42000,38000,45000,41000], 
+                        borderColor:'#22c55e', 
+                        backgroundColor:'rgba(34,197,94,0.1)', 
+                        tension:0.4, 
+                        fill:true 
+                    }] 
+                },
+                options:{ 
+                    responsive:true,
+                    maintainAspectRatio: false,
+                    scales:{ 
+                        y:{ 
+                            beginAtZero:true,
+                            ticks: { color: colors.textColor },
+                            grid: { color: colors.gridColor }
+                        },
+                        x: {
+                            ticks: { color: colors.textColor },
+                            grid: { color: colors.gridColor }
+                        }
+                    }, 
+                    plugins:{ 
+                        legend:{ 
+                            display:false 
+                        } 
+                    } 
+                }
+            });
+        }
+
+        // Sales by Category Chart
+        const categorySalesCtx = document.getElementById('categorySalesChart');
+        if (categorySalesCtx) {
+            categorySalesChart = new Chart(categorySalesCtx.getContext('2d'), {
+                type: 'doughnut',
+                data:{ 
+                    labels:['Beverages','Snacks','Dairy','Bakery','Electronics','Others'], 
+                    datasets:[{ 
+                        data:[35,20,15,12,10,8], 
+                        backgroundColor:['#3b82f6','#ef4444','#fbbf24','#8b5cf6','#10b981','#f97316'] 
+                    }]
+                },
+                options:{ 
+                    responsive:true,
+                    maintainAspectRatio: false,
+                    plugins:{ 
+                        legend:{ 
+                            position:'bottom', 
+                            labels:{ 
+                                color: colors.textColor,
+                                padding: 10,
+                                font: {
+                                    size: 12
+                                }  
+                            } 
+                        } 
+                    } 
+                }
+            });
+        }
+
+        // Payment Methods Chart
+        const paymentMethodsCtx = document.getElementById('paymentMethodsChart');
+        if (paymentMethodsCtx) {
+            paymentMethodsChart = new Chart(paymentMethodsCtx.getContext('2d'), {
+                type:'bar',
+                data:{ 
+                    labels:['Cash','Card','UPI','Wallet'], 
+                    datasets:[{ 
+                        data:[45,35,30,17], 
+                        backgroundColor:['#22c55e','#3b82f6','#8b5cf6','#f59e0b'] 
+                    }] 
+                },
+                options:{ 
+                    responsive:true,
+                    maintainAspectRatio: false,
+                    scales:{ 
+                        y:{ 
+                            beginAtZero:true,
+                            ticks: { color: colors.textColor },
+                            grid: { color: colors.gridColor }
+                        },
+                        x: {
+                            ticks: { color: colors.textColor },
+                            grid: { color: colors.gridColor }
+                        }
+                    }, 
+                    plugins:{ 
+                        legend:{ 
+                            display:false 
+                        } 
+                    } 
+                }
+            });
+        }
+    }
+    
+    // Update chart colors when theme changes
+    function updateChartColors() {
+        const colors = getChartColors();
+        
+        // Update daily sales chart
+        if (dailySalesChart) {
+            dailySalesChart.options.scales.y.ticks.color = colors.textColor;
+            dailySalesChart.options.scales.x.ticks.color = colors.textColor;
+            dailySalesChart.options.scales.y.grid.color = colors.gridColor;
+            dailySalesChart.options.scales.x.grid.color = colors.gridColor;
+            dailySalesChart.update();
+        }
+        
+        // Update category sales chart
+        if (categorySalesChart) {
+            categorySalesChart.options.plugins.legend.labels.color = colors.textColor;
+            categorySalesChart.update();
+        }
+        
+        // Update payment methods chart
+        if (paymentMethodsChart) {
+            paymentMethodsChart.options.scales.y.ticks.color = colors.textColor;
+            paymentMethodsChart.options.scales.x.ticks.color = colors.textColor;
+            paymentMethodsChart.options.scales.y.grid.color = colors.gridColor;
+            paymentMethodsChart.options.scales.x.grid.color = colors.gridColor;
+            paymentMethodsChart.update();
+        }
+    }
+    
+    // Initialize charts when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        
+        // Listen for theme changes
+        window.addEventListener('themeChanged', updateChartColors);
+    });
+</script>
+
+
+{% else %}
+{% include 'shop/registration-form.html' with form=form %}
+{% endif %}
+{% endblock content %}
