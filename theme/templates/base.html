@@ -16,39 +16,79 @@
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-gray-800">
+                    <a href="{% if user.is_authenticated and user.is_seller %}{% url 'shop:dashboard' %}{% else %}/{% endif %}" 
+                       class="text-2xl font-bold text-gray-800">
                         🏆 SportsHub
                     </a>
                 </div>
 
-                <!-- Navigation -->
+                <!-- Desktop Navigation -->
                 <nav class="hidden md:flex space-x-8">
-                    <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
-                    <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
-                    {% if user.is_authenticated %}
+                    {% if user.is_authenticated and user.is_buyer %}
+                        <!-- Buyer Navigation -->
+                        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+                        <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
                         <a href="{% url 'buyer:cart' %}" class="text-gray-600 hover:text-gray-900">Cart</a>
+                    {% elif user.is_authenticated and user.is_seller %}
+                        <!-- Seller Navigation -->
+                        <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
+                    {% else %}
+                        <!-- Guest Navigation -->
+                        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+                        <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
                     {% endif %}
                 </nav>
 
-                <!-- User Actions -->
+                <!-- User Actions - Always Visible -->
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
-                        <span class="text-gray-700">Hello, {{ user.username }}</span>
+                        <span class="text-gray-700 hidden sm:inline">Hello, {{ user.username }}</span>
                         {% if user.is_seller %}
-                            <a href="{% url 'shop:dashboard' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            <a href="{% url 'shop:dashboard' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hidden sm:inline-block">
                                 Seller Dashboard
                             </a>
                         {% endif %}
-                        <a href="{% url 'accounts:logout_view' %}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{% url 'accounts:logout_view' %}" class="text-gray-600 hover:text-gray-900 hidden sm:inline">
                             Logout
                         </a>
                     {% else %}
-                        <a href="{% url 'accounts:retail_admin_login' %}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{% url 'accounts:retail_admin_login' %}" class="text-gray-600 hover:text-gray-900 hidden sm:inline">
                             Login
                         </a>
-                        <a href="{% url 'accounts:retail_admin_register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <a href="{% url 'accounts:retail_admin_register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hidden sm:inline-block">
                             Register
                         </a>
+                    {% endif %}
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobileMenuButton" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4">
+                <div class="space-y-2">
+                    {% if user.is_authenticated and user.is_buyer %}
+                        <!-- Buyer Mobile Menu -->
+                        <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
+                        <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
+                        <a href="{% url 'buyer:cart' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Cart</a>
+                        <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
+                    {% elif user.is_authenticated and user.is_seller %}
+                        <!-- Seller Mobile Menu -->
+                        <a href="{% url 'shop:dashboard' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Seller Dashboard</a>
+                        <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
+                        <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
+                    {% else %}
+                        <!-- Guest Mobile Menu -->
+                        <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
+                        <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
+                        <a href="{% url 'accounts:retail_admin_login' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Login</a>
+                        <a href="{% url 'accounts:retail_admin_register' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Register</a>
                     {% endif %}
                 </div>
             </div>
@@ -80,5 +120,26 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    <!-- Mobile Menu Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('#mobileMenu') && !event.target.closest('#mobileMenuButton')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

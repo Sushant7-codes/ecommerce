@@ -6,8 +6,6 @@ class CustomUser(AbstractUser):
     class Roles(models.TextChoices):
         BUYER = "buyer", "Buyer"
         SELLER = "seller", "Seller"
-        SHOP_ADMIN = "shop_admin", "Shop Admin"
-        STAFF = "staff", "Staff"
         
     address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = models.CharField(max_length=10, null=True, blank=True)

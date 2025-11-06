@@ -24,23 +24,21 @@ def retail_admin_register(request):
                 return redirect("accounts:retail_admin_login")
 
             try:
-                
                 from .background_tasks import send_otp
                 import random
 
                 otp = random.randint(100000, 999999)
 
-                # Copy cleaned data and remove file objects (can't be serialized)
+                # Copy cleaned data and remove ALL file objects
                 pending_data = form.cleaned_data.copy()
                 for key, value in list(pending_data.items()):
-                    if isinstance(value, InMemoryUploadedFile):
+                    # Remove profile_pic and any other file fields
+                    if key == 'profile_pic' or hasattr(value, 'read'):
                         pending_data.pop(key)
 
                 # Store only JSON-safe data in session
                 request.session["pending_user_data"] = pending_data
                 request.session["pending_user_password"] = form.cleaned_data.get("password1")
-
-                # Store OTP in session
                 request.session["register_otp"] = str(otp)
 
                 # Send OTP
@@ -60,8 +58,6 @@ def retail_admin_register(request):
     # GET request — show empty form
     form = RetailAdminRegisterForm()
     return render(request, "accounts/register.html", {"form": form})
-
-
 
 def retail_admin_login(request):
     if request.method == "POST":
@@ -173,7 +169,7 @@ def register_otp_confirmation(request):
             messages.error(request, "Invalid OTP. Try again.")
             return redirect("accounts:register_otp_confirmation")
 
-        # ✅ OTP is correct → create user
+        # ✅ OTP is correct → create user WITHOUT profile_pic
         user = CustomUser.objects.create_user(
             username=user_data.get("username"),
             email=user_data.get("email"),
@@ -181,7 +177,8 @@ def register_otp_confirmation(request):
             last_name=user_data.get("last_name"),
             address=user_data.get("address"),
             phone_number=user_data.get("phone_number"),
-            profile_pic=user_data.get("profile_pic"),
+            # profile_pic is removed - user can add it later in profile settings
+            role=user_data.get("role"),
             password=user_password,
         )
 

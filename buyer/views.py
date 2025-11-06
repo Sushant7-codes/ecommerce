@@ -7,11 +7,8 @@ from django.http import JsonResponse
 
 @login_required
 def dashboard(request):
-    if not request.user.is_buyer():
-        messages.error(request, "Access denied. Buyer account required.")
-        return redirect('accounts:retail_admin_login')
-    
-    # Get featured products
+    # Allow both buyers and sellers to see the homepage
+    # Remove the buyer-only restriction
     featured_products = Product.objects.filter(is_active=True)[:8]
     
     context = {
@@ -21,10 +18,8 @@ def dashboard(request):
 
 @login_required
 def product_list(request):
-    if not request.user.is_buyer():
-        messages.error(request, "Access denied. Buyer account required.")
-        return redirect('accounts:retail_admin_login')
-    
+    # Allow both buyers and sellers to browse products
+    # Remove the buyer-only restriction
     products = Product.objects.filter(is_active=True)
     
     context = {
@@ -34,6 +29,7 @@ def product_list(request):
 
 @login_required
 def cart_view(request):
+    # KEEP this buyer-only - sellers shouldn't use cart
     if not request.user.is_buyer():
         messages.error(request, "Access denied. Buyer account required.")
         return redirect('accounts:retail_admin_login')
@@ -47,8 +43,10 @@ def cart_view(request):
 
 @login_required
 def add_to_cart(request, product_id):
+    # KEEP this buyer-only
     if not request.user.is_buyer():
-        return JsonResponse({'success': False, 'error': 'Access denied'})
+        messages.error(request, "Access denied. Buyer account required.")
+        return redirect('buyer:product_list')  # Redirect to products instead of login
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -68,9 +66,10 @@ def add_to_cart(request, product_id):
 
 @login_required
 def remove_from_cart(request, item_id):
+    # KEEP this buyer-only
     if not request.user.is_buyer():
         messages.error(request, "Access denied.")
-        return redirect('accounts:retail_admin_login')
+        return redirect('buyer:product_list')  # Redirect to products instead of login
     
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     product_name = cart_item.product.name
