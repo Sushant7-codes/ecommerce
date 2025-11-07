@@ -31,23 +31,12 @@
             </div>
             {% endif %}
 
-            <!-- Basic Information Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Product Name -->
-                <div>
-                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Product Name *
-                    </label>
-                    {{ form.name|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
-                </div>
-
-                <!-- Category -->
-                <div>
-                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Category *
-                    </label>
-                    {{ form.category|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
-                </div>
+            <!-- Product Name -->
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name *
+                </label>
+                {{ form.name|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white" }}
             </div>
 
             <!-- Price and Stock -->
@@ -61,7 +50,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span class="text-gray-500">$</span>
                         </div>
-                        {{ form.price|add_class:"w-full pl-8 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+                        {{ form.price|add_class:"w-full pl-8 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white" }}
                     </div>
                 </div>
 
@@ -70,7 +59,7 @@
                     <label for="{{ form.stock_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         Stock Quantity *
                     </label>
-                    {{ form.stock_quantity|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+                    {{ form.stock_quantity|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white" }}
                 </div>
             </div>
 
@@ -80,8 +69,8 @@
                     Product Image *
                     <span class="text-red-500 text-xs ml-1">(Required)</span>
                 </label>
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                    {{ form.image }}
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors bg-white">
+                    {{ form.image|add_class:"text-gray-900" }}
                     <p class="text-sm text-gray-500 mt-2">
                         Upload a clear image of your product. Supported formats: JPG, PNG, WEBP
                     </p>
@@ -96,7 +85,7 @@
                 <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                     Product Description *
                 </label>
-                {{ form.description|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+                {{ form.description|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white" }}
                 <p class="text-sm text-gray-500 mt-1">Describe your product features, specifications, and condition.</p>
             </div>
 
@@ -143,11 +132,18 @@ input[type="file"]::file-selector-button:hover {
     background: #2563eb;
 }
 
+/* Ensure all form inputs have dark text */
+input, select, textarea {
+    color: #1f2937 !important; /* text-gray-900 */
+    background-color: white !important;
+}
+
 /* Focus states */
 input:focus, select:focus, textarea:focus {
     outline: none;
     ring: 2px;
     ring-color: #3b82f6;
+    color: #1f2937 !important;
 }
 </style>
 {% endblock %}

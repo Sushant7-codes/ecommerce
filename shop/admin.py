@@ -1,16 +1,10 @@
 from django.contrib import admin
-from .models import Category, Product
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description']
-    search_fields = ['name']
-    list_per_page = 20
+from .models import Product
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'seller', 'price', 'stock_quantity', 'is_active', 'created_at']
-    list_filter = ['category', 'is_active', 'created_at']
+    list_display = ['name', 'seller', 'price', 'stock_quantity', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at']
     list_per_page = 20

@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Product, Category
-from .forms import ProductForm, CategoryForm  # Add this import
+from .models import Product
+from .forms import ProductForm
 
 @login_required
 def dashboard(request):
@@ -93,25 +93,3 @@ def delete_product(request, product_id):
     messages.success(request, f"Product '{product_name}' deleted successfully!")
     return redirect('shop:product_list')
 
-@login_required
-def category_list(request):
-    if not request.user.is_seller():
-        messages.error(request, "Access denied. Seller account required.")
-        return redirect('accounts:retail_admin_login')
-    
-    categories = Category.objects.all()
-    
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f"Category '{form.cleaned_data['name']}' added successfully!")
-            return redirect('shop:category_list')
-    else:
-        form = CategoryForm()
-    
-    context = {
-        'categories': categories,
-        'form': form,
-    }
-    return render(request, 'shop/category_list.html', context)

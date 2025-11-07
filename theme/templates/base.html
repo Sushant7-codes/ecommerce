@@ -31,7 +31,7 @@
                         <a href="{% url 'buyer:cart' %}" class="text-gray-600 hover:text-gray-900">Cart</a>
                     {% elif user.is_authenticated and user.is_seller %}
                         <!-- Seller Navigation -->
-                        <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
+                        <a href="{% url 'shop:product_list' %}" class="text-gray-600 hover:text-gray-900">My Products</a>
                     {% else %}
                         <!-- Guest Navigation -->
                         <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
@@ -69,28 +69,27 @@
                 </div>
             </div>
 
-            <!-- Mobile Menu -->
-            <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4">
-                <div class="space-y-2">
-                    {% if user.is_authenticated and user.is_buyer %}
-                        <!-- Buyer Mobile Menu -->
-                        <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
-                        <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
-                        <a href="{% url 'buyer:cart' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Cart</a>
-                        <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
-                    {% elif user.is_authenticated and user.is_seller %}
-                        <!-- Seller Mobile Menu -->
-                        <a href="{% url 'shop:dashboard' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Seller Dashboard</a>
-                        <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
-                        <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
-                    {% else %}
-                        <!-- Guest Mobile Menu -->
-                        <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
-                        <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
-                        <a href="{% url 'accounts:retail_admin_login' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Login</a>
-                        <a href="{% url 'accounts:retail_admin_register' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Register</a>
-                    {% endif %}
-                </div>
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4">
+            <div class="space-y-2">
+                {% if user.is_authenticated and user.is_buyer %}
+                    <!-- Buyer Mobile Menu -->
+                    <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
+                    <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
+                    <a href="{% url 'buyer:cart' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Cart</a>
+                    <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
+                {% elif user.is_authenticated and user.is_seller %}
+                    <!-- Seller Mobile Menu -->
+                    <a href="{% url 'shop:dashboard' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Seller Dashboard</a>
+                    <a href="{% url 'shop:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">My Products</a>
+                    <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
+                {% else %}
+                    <!-- Guest Mobile Menu -->
+                    <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
+                    <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
+                    <a href="{% url 'accounts:retail_admin_login' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Login</a>
+                    <a href="{% url 'accounts:retail_admin_register' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Register</a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -112,10 +111,26 @@
 
     <!-- Messages -->
     {% if messages %}
-    <div class="fixed top-20 right-4 z-50 space-y-2">
+    <div class="fixed top-20 right-4 z-50 space-y-2" id="message-container">
         {% for message in messages %}
-        <div class="bg-{% if message.tags == 'success' %}green{% else %}red{% endif %}-500 text-white px-6 py-3 rounded-lg shadow-lg">
-            {{ message }}
+        <div class="{% if message.tags == 'success' %}bg-green-500{% else %}bg-red-500{% endif %} text-white px-6 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-80 message-alert">
+            <span class="flex items-center">
+                {% if message.tags == 'success' %}
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                {% else %}
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                </svg>
+                {% endif %}
+                {{ message }}
+            </span>
+            <button class="ml-4 text-white hover:text-gray-200 focus:outline-none" onclick="this.parentElement.remove()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
         {% endfor %}
     </div>
@@ -123,6 +138,27 @@
 
     <!-- Mobile Menu Script -->
     <script>
+
+        // Auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.message-alert');
+            messages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.transition = 'all 0.3s ease';
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateX(100%)';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 300);
+                }, 5000); // 5 seconds
+            });
+
+            // Remove all messages if container is empty
+            const messageContainer = document.getElementById('message-container');
+            if (messageContainer && messageContainer.children.length === 0) {
+                messageContainer.remove();
+            }
+        });
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const mobileMenu = document.getElementById('mobileMenu');
