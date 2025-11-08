@@ -92,9 +92,8 @@
                         Edit
                     </a>
 
-                    <a href="{% url 'shop:delete_product' product.id %}"
-                       class="flex-1 inline-flex items-center justify-center py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white font-semibold shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:shadow-[0_0_35px_rgba(239,68,68,0.8)] hover:-translate-y-[2px] transition-all duration-400"
-                       onclick="return confirm('Are you sure you want to delete {{ product.name }}?')">
+                   <a href="{% url 'shop:delete_product' product.id %}"
+                       class="flex-1 inline-flex items-center justify-center py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white font-semibold shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:shadow-[0_0_35px_rgba(239,68,68,0.8)] hover:-translate-y-[2px] transition-all duration-400 delete-btn">
                         <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -124,7 +123,37 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 border border-white/10 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+            <div class="text-center">
+                <!-- Warning Icon -->
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-500/20 mb-4">
+                    <svg class="h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-2xl font-bold text-white mb-2">Delete Product</h3>
+                <p class="text-gray-400 mb-6">Are you sure you want to delete <span id="productName" class="font-semibold text-white"></span>? This action cannot be undone.</p>
+
+                <div class="flex gap-4">
+                    <button id="cancelDelete" 
+                            class="flex-1 py-3 px-6 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold">
+                        Cancel
+                    </button>
+                    <a id="confirmDelete" 
+                       href="#" 
+                       class="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] transition-all duration-300 font-semibold text-center">
+                        Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 <style>
 /* Smooth floating pulse */
@@ -144,4 +173,79 @@
   overflow: hidden;
 }
 </style>
+
+<script>
+// Delete Confirmation Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('modalContent');
+    const productNameSpan = document.getElementById('productName');
+    const confirmDeleteLink = document.getElementById('confirmDelete');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+    
+    function showModal() {
+        deleteModal.classList.remove('hidden');
+        setTimeout(() => {
+            deleteModal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+    
+    function hideModal() {
+        deleteModal.classList.remove('opacity-100');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            deleteModal.classList.add('hidden');
+        }, 300);
+    }
+    
+    // Add click event to all delete buttons
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Get product name from the card
+            const card = this.closest('.group');
+            const productName = card.querySelector('h3').textContent;
+            const deleteUrl = this.getAttribute('href');
+            
+            // Set modal content
+            productNameSpan.textContent = productName;
+            confirmDeleteLink.href = deleteUrl;
+            
+            // Show modal with animation
+            showModal();
+        });
+    });
+    
+    // Close modal events
+    cancelDeleteBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideModal();
+    });
+    
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            hideModal();
+        }
+    });
+    
+    // Escape key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+            hideModal();
+        }
+    });
+    
+    // Prevent modal from opening new tab/window
+    confirmDeleteLink.addEventListener('click', function(e) {
+        // Let the link work normally - it will redirect to delete URL
+        // No need to prevent default here
+    });
+});
+</script>
+
 {% endblock %}

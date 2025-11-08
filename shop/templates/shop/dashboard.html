@@ -5,7 +5,7 @@
     <h1 class="text-3xl font-bold text-gray-800 mb-8">Seller Dashboard</h1>
     
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-6 rounded-lg shadow-md border">
             <h3 class="text-lg font-semibold text-gray-700">Total Products</h3>
             <p class="text-3xl font-bold text-blue-600">{{ total_products }}</p>
@@ -15,8 +15,12 @@
             <p class="text-3xl font-bold text-green-600">{{ active_products }}</p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-md border">
-            <h3 class="text-lg font-semibold text-gray-700">Low Stock</h3>
-            <p class="text-3xl font-bold text-orange-600">{{ low_stock_products.count }}</p>
+            <h3 class="text-lg font-semibold text-gray-700">Total Orders</h3>
+            <p class="text-3xl font-bold text-purple-600">{{ total_orders }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md border">
+            <h3 class="text-lg font-semibold text-gray-700">Pending Orders</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ pending_orders }}</p>
         </div>
     </div>
 
@@ -30,10 +34,56 @@
             <a href="{% url 'shop:product_list' %}" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-semibold text-center">
                 📦 View All Products
             </a>
-            </div>
+            <a href="{% url 'shop:order_list' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold text-center">
+                📋 View All Orders
+            </a>
+        </div>
     </div>
 
-    <!-- Recent Products (if any) -->
+    <!-- Recent Orders Section -->
+    <div class="bg-white p-6 rounded-lg shadow-md border mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Recent Orders</h2>
+            <a href="{% url 'shop:order_list' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                View All →
+            </a>
+        </div>
+        
+        {% if recent_orders %}
+        <div class="space-y-4">
+            {% for order in recent_orders %}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 gap-4 sm:gap-0">
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-800">Order #{{ order.order_number }}</h3>
+                    <p class="text-sm text-gray-600">Customer: {{ order.customer.username }}</p>
+                    <p class="text-sm text-gray-600">Total: ${{ order.total_amount }}</p>
+                </div>
+                <div class="sm:text-right">
+                    <span class="inline-block px-3 py-1 text-sm rounded-full 
+                        {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-800
+                        {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                        {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                    <p class="text-sm text-gray-500 mt-1">{{ order.created_at|date:"M d, Y" }}</p>
+                </div>
+                <a href="{% url 'shop:order_detail' order.id %}" 
+                   class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm text-center">
+                    View Details
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500">
+            <p>No orders yet. When customers place orders, they will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Low Stock Alert -->
     {% if low_stock_products %}
     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
         <h2 class="text-xl font-semibold text-yellow-800 mb-4">⚠️ Low Stock Alert</h2>
