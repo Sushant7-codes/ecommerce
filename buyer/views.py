@@ -5,6 +5,17 @@ from .models import Cart, CartItem, Order
 from shop.models import Product
 from django.http import JsonResponse
 
+def root_redirect(request):
+    """Smart redirect based on user type"""
+    if request.user.is_authenticated:
+        if request.user.is_seller():
+            return redirect('shop:dashboard')  # Redirect sellers to seller dashboard
+        elif request.user.is_buyer():
+            return redirect('buyer:dashboard')  # Redirect buyers to buyer dashboard
+    
+    # If not authenticated, show public homepage or redirect to login
+    return redirect('buyer:dashboard')  # Or create a public landing page
+
 @login_required
 def dashboard(request):
     # Allow both buyers and sellers to see the homepage

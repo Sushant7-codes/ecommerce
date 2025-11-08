@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Product, Order , OrderItem
+from .models import Product, Order
 from .forms import ProductForm
 
 @login_required
@@ -43,9 +43,25 @@ def order_list(request):
     if status_filter:
         orders = orders.filter(status=status_filter)
     
+    # Calculate status counts for the filter
+    all_orders = Order.objects.filter(seller=request.user)
+    status_counts = {
+        'pending': all_orders.filter(status='pending').count(),
+        'confirmed': all_orders.filter(status='confirmed').count(),
+        'shipped': all_orders.filter(status='shipped').count(),
+        'delivered': all_orders.filter(status='delivered').count(),
+        'cancelled': all_orders.filter(status='cancelled').count(),
+    }
+    
     context = {
         'orders': orders,
         'status_filter': status_filter,
+        'status_choices': Order.STATUS_CHOICES,
+        'pending_count': status_counts['pending'],
+        'confirmed_count': status_counts['confirmed'],
+        'shipped_count': status_counts['shipped'],
+        'delivered_count': status_counts['delivered'],
+        'cancelled_count': status_counts['cancelled'],
     }
     return render(request, 'shop/order_list.html', context)
 
@@ -56,6 +72,18 @@ def order_detail(request, order_id):
         return redirect('accounts:retail_admin_login')
     
     order = get_object_or_404(Order, id=order_id, seller=request.user)
+    
+    if request.method == 'POST':
+        # Handle status update from order detail page
+        new_status = request.POST.get('status')
+        if new_status in dict(Order.STATUS_CHOICES):
+            old_status = order.status
+            order.status = new_status
+            order.save()
+            messages.success(request, f"Order #{order.order_number} status updated from {old_status} to {new_status}")
+            return redirect('shop:order_detail', order_id=order_id)
+        else:
+            messages.error(request, "Invalid status selected.")
     
     context = {
         'order': order,
@@ -81,6 +109,7 @@ def update_order_status(request, order_id):
             messages.error(request, "Invalid status selected.")
     
     return redirect('shop:order_detail', order_id=order_id)
+
 
 
 

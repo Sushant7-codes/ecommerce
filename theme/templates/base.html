@@ -7,92 +7,242 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     {% tailwind_css %}
+    <style>
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .gradient-header {
+            background: linear-gradient(-45deg, #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981);
+            background-size: 400% 400%;
+            animation: gradientShift 12s ease infinite;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+            border-radius: 10px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+        
+        .nav-link:hover::before {
+            opacity: 1;
+        }
+        
+        .nav-link:hover::after {
+            width: 80%;
+        }
+        
+        .nav-link.active::after {
+            width: 80%;
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            background-size: 200% 200%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            background-size: 200% 200%;
+            animation: shimmer 3s infinite;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+            background-position: 100% 100%;
+        }
+        
+        .btn-primary:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+        
+        .logo-glow {
+            text-shadow: 0 0 30px rgba(99, 102, 241, 0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
+        }
+        
+        .logo-glow:hover {
+            text-shadow: 0 0 40px rgba(99, 102, 241, 0.8), 0 0 80px rgba(139, 92, 246, 0.6);
+            transform: scale(1.05) rotate(-2deg);
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+        }
+        
+        .mobile-menu-enter {
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .user-badge {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .menu-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .menu-btn:hover {
+            transform: rotate(90deg);
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
+    <!-- Gradient Background Strip -->
+    <div class="gradient-header h-1.5 shadow-lg"></div>
+    
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
+    <header class="glass-effect shadow-lg sticky top-0 z-50 border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+            <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
                 <div class="flex items-center">
                     <a href="{% if user.is_authenticated and user.is_seller %}{% url 'shop:dashboard' %}{% else %}/{% endif %}" 
-                       class="text-2xl font-bold text-gray-800">
-                        🏆 SportsHub
+                       class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent logo-glow flex items-center gap-2">
+                        <span class="text-4xl">🏆</span>
+                        <span>SportsHub</span>
                     </a>
                 </div>
 
                 <!-- Desktop Navigation -->
-                <nav class="hidden md:flex space-x-8">
+                <nav class="hidden md:flex space-x-1 bg-gray-50 rounded-full px-2 py-2 shadow-inner">
                     {% if user.is_authenticated and user.is_buyer %}
                         <!-- Buyer Navigation -->
-                        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
-                        <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
-                        <a href="{% url 'buyer:cart' %}" class="text-gray-600 hover:text-gray-900">Cart</a>
+                        <a href="/" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">Home</a>
+                        <a href="{% url 'buyer:product_list' %}" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">Products</a>
+                        <a href="{% url 'buyer:cart' %}" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">Cart</a>
                     {% elif user.is_authenticated and user.is_seller %}
                         <!-- Seller Navigation -->
-                        <a href="{% url 'shop:product_list' %}" class="text-gray-600 hover:text-gray-900">My Products</a>
-                        <a href="{% url 'shop:order_list' %}" class="text-gray-600 hover:text-gray-900">Orders</a>
-                    
+                        <a href="{% url 'shop:product_list' %}" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">My Products</a>
+                        <a href="{% url 'shop:order_list' %}" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">Orders</a>
                     {% else %}
                         <!-- Guest Navigation -->
-                        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
-                        <a href="{% url 'buyer:product_list' %}" class="text-gray-600 hover:text-gray-900">Products</a>
+                        <a href="/" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">Home</a>
+                        <a href="{% url 'buyer:product_list' %}" class="nav-link px-6 py-2 text-gray-700 font-medium hover:text-purple-600 rounded-full hover:bg-white">Products</a>
                     {% endif %}
                 </nav>
 
-                <!-- User Actions - Always Visible -->
+                <!-- User Actions -->
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
-                        <span class="text-gray-700 hidden sm:inline">Hello, {{ user.username }}</span>
+                        <span class="text-gray-600 text-sm opacity-70 hidden sm:inline">Hello, {{ user.username }}</span>
                         {% if user.is_seller %}
-                            <a href="{% url 'shop:dashboard' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hidden sm:inline-block">
-                                Seller Dashboard
+                            <a href="{% url 'shop:dashboard' %}" class="btn-primary text-white px-6 py-2.5 rounded-full font-medium hidden sm:inline-block dashboard-link">
+                                Dashboard
                             </a>
                         {% endif %}
-                        <a href="{% url 'accounts:logout_view' %}" class="text-gray-600 hover:text-gray-900 hidden sm:inline">
+                        <a href="{% url 'accounts:logout_view' %}" class="text-gray-600 hover:text-purple-600 font-medium hidden sm:inline transition-colors">
                             Logout
                         </a>
                     {% else %}
-                        <a href="{% url 'accounts:retail_admin_login' %}" class="text-gray-600 hover:text-gray-900 hidden sm:inline">
+                        <a href="{% url 'accounts:retail_admin_login' %}" class="text-gray-700 hover:text-purple-600 font-medium hidden sm:inline transition-colors">
                             Login
                         </a>
-                        <a href="{% url 'accounts:retail_admin_register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hidden sm:inline-block">
+                        <a href="{% url 'accounts:retail_admin_register' %}" class="btn-primary text-white px-6 py-2.5 rounded-full font-medium hidden sm:inline-block">
                             Register
                         </a>
                     {% endif %}
 
                     <!-- Mobile Menu Button -->
-                    <button id="mobileMenuButton" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                    <button id="mobileMenuButton" class="md:hidden p-2 rounded-full text-gray-600 hover:text-purple-600 hover:bg-purple-50 menu-btn">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
                 </div>
             </div>
-
+        </div>
 
         <!-- Mobile Menu -->
-        <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4">
-            <div class="space-y-2">
+        <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 bg-white">
+            <div class="max-w-7xl mx-auto px-4 py-4 space-y-1 mobile-menu-enter">
                 {% if user.is_authenticated and user.is_buyer %}
                     <!-- Buyer Mobile Menu -->
-                    <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
-                    <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
-                    <a href="{% url 'buyer:cart' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Cart</a>
-                    <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
+                    <a href="/" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Home</a>
+                    <a href="{% url 'buyer:product_list' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Products</a>
+                    <a href="{% url 'buyer:cart' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Cart</a>
+                    <div class="pt-2 border-t border-gray-200">
+                        <div class="px-4 py-2 text-sm text-gray-500">Logged in as <strong>{{ user.username }}</strong></div>
+                        <a href="{% url 'accounts:logout_view' %}" class="block px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-all">Logout</a>
+                    </div>
                 {% elif user.is_authenticated and user.is_seller %}
                     <!-- Seller Mobile Menu -->
-                    <a href="{% url 'shop:dashboard' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Seller Dashboard</a>
-                    <a href="{% url 'shop:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">My Products</a>
-                    <a href="{% url 'shop:order_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Orders</a>
-                    <a href="{% url 'accounts:logout_view' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Logout</a>
+                    <a href="{% url 'shop:dashboard' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all dashboard-link">Dashboard</a>
+                    <a href="{% url 'shop:product_list' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">My Products</a>
+                    <a href="{% url 'shop:order_list' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Orders</a>
+                    <div class="pt-2 border-t border-gray-200">
+                        <div class="px-4 py-2 text-sm text-gray-500">Logged in as <strong>{{ user.username }}</strong></div>
+                        <a href="{% url 'accounts:logout_view' %}" class="block px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-all">Logout</a>
+                    </div>
                 {% else %}
                     <!-- Guest Mobile Menu -->
-                    <a href="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Home</a>
-                    <a href="{% url 'buyer:product_list' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Products</a>
-                    <a href="{% url 'accounts:retail_admin_login' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Login</a>
-                    <a href="{% url 'accounts:retail_admin_register' %}" class="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">Register</a>
+                    <a href="/" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Home</a>
+                    <a href="{% url 'buyer:product_list' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Products</a>
+                    <div class="pt-2 border-t border-gray-200 space-y-1">
+                        <a href="{% url 'accounts:retail_admin_login' %}" class="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-all">Login</a>
+                        <a href="{% url 'accounts:retail_admin_register' %}" class="block px-4 py-3 text-white bg-gradient-to-r from-purple-600 to-blue-500 rounded-lg font-medium text-center">Register</a>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -115,23 +265,23 @@
 
     <!-- Messages -->
     {% if messages %}
-    <div class="fixed top-20 right-4 z-50 space-y-2" id="message-container">
+    <div class="fixed top-24 right-4 z-50 space-y-2" id="message-container">
         {% for message in messages %}
-        <div class="{% if message.tags == 'success' %}bg-green-500{% else %}bg-red-500{% endif %} text-white px-6 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-80 message-alert">
+        <div class="{% if message.tags == 'success' %}bg-gradient-to-r from-green-500 to-emerald-500{% else %}bg-gradient-to-r from-red-500 to-pink-500{% endif %} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between min-w-80 message-alert transform transition-all hover:scale-105">
             <span class="flex items-center">
                 {% if message.tags == 'success' %}
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                 </svg>
                 {% else %}
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
                 </svg>
                 {% endif %}
-                {{ message }}
+                <span class="font-medium">{{ message }}</span>
             </span>
-            <button class="ml-4 text-white hover:text-gray-200 focus:outline-none" onclick="this.parentElement.remove()">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button class="ml-4 text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-110" onclick="this.parentElement.remove()">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
@@ -140,45 +290,103 @@
     </div>
     {% endif %}
 
-    <!-- Mobile Menu Script -->
+    <!-- Scripts -->
     <script>
-
-        // Auto-hide messages after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
-            const messages = document.querySelectorAll('.message-alert');
-            messages.forEach(function(message) {
-                setTimeout(function() {
-                    message.style.transition = 'all 0.3s ease';
-                    message.style.opacity = '0';
-                    message.style.transform = 'translateX(100%)';
-                    setTimeout(function() {
-                        message.remove();
-                    }, 300);
-                }, 5000); // 5 seconds
-            });
-
-            // Remove all messages if container is empty
-            const messageContainer = document.getElementById('message-container');
-            if (messageContainer && messageContainer.children.length === 0) {
-                messageContainer.remove();
+            // Active nav link tracking
+            const navLinks = document.querySelectorAll('.nav-link');
+            const dashboardLinks = document.querySelectorAll('.dashboard-link');
+            const currentPath = window.location.pathname;
+            
+            // Function to clear all active states
+            function clearAllActive() {
+                navLinks.forEach(l => l.classList.remove('active'));
+                sessionStorage.removeItem('activeNavLink');
             }
-        });
-        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Check if we're on dashboard page - if so, clear all active states
+            if (currentPath.includes('/dashboard')) {
+                clearAllActive();
+            } else {
+                // Normal nav link activation logic
+                navLinks.forEach(link => {
+                    const linkPath = link.getAttribute('href');
+                    
+                    // Check if link matches current path exactly or if current path starts with link path (for nested routes)
+                    if (linkPath === currentPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                        link.classList.add('active');
+                    }
+                    
+                    // Add click handler to set active state
+                    link.addEventListener('click', function(e) {
+                        // Remove active from all links
+                        clearAllActive();
+                        // Add active to clicked link
+                        this.classList.add('active');
+                        
+                        // Store active link in sessionStorage
+                        sessionStorage.setItem('activeNavLink', this.getAttribute('href'));
+                    });
+                });
+                
+                // Check sessionStorage for previously active link (only if not on dashboard)
+                const storedActiveLink = sessionStorage.getItem('activeNavLink');
+                if (storedActiveLink) {
+                    navLinks.forEach(link => {
+                        if (link.getAttribute('href') === storedActiveLink) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            }
+            
+            // Dashboard button click handlers - clear all active nav states before navigating
+            dashboardLinks.forEach(dashboardLink => {
+                dashboardLink.addEventListener('click', function(e) {
+                    clearAllActive();
+                });
+            });
+            
+            // Mobile menu toggle
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const mobileMenu = document.getElementById('mobileMenu');
             
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function() {
                     mobileMenu.classList.toggle('hidden');
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('mobile-menu-enter');
+                    }
                 });
             }
             
             // Close mobile menu when clicking outside
             document.addEventListener('click', function(event) {
-                if (!event.target.closest('#mobileMenu') && !event.target.closest('#mobileMenuButton')) {
-                    mobileMenu.classList.add('hidden');
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    if (!event.target.closest('#mobileMenu') && !event.target.closest('#mobileMenuButton')) {
+                        mobileMenu.classList.add('hidden');
+                    }
                 }
             });
+
+            // Auto-hide messages
+            const messages = document.querySelectorAll('.message-alert');
+            messages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.transition = 'all 0.5s ease';
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateX(100%) scale(0.8)';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 5000);
+            });
+
+            // Remove empty message container
+            const messageContainer = document.getElementById('message-container');
+            if (messageContainer && messageContainer.children.length === 0) {
+                messageContainer.remove();
+            }
         });
     </script>
 </body>

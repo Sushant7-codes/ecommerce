@@ -28,6 +28,9 @@ class Order(models.Model):
         ('cancelled', '❌ Cancelled'),
     ]
     
+    # Status progression for the timeline
+    STATUS_PROGRESSION = ['pending', 'confirmed', 'shipped', 'delivered']
+    
     order_number = models.CharField(max_length=20, unique=True)
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seller_orders')
@@ -40,6 +43,29 @@ class Order(models.Model):
     
     def __str__(self):
         return f"Order #{self.order_number}"
+    
+    @property
+    def status_index(self):
+        """Return the index of current status in progression for timeline display"""
+        try:
+            return self.STATUS_PROGRESSION.index(self.status)
+        except ValueError:
+            return -1  # For cancelled status
+    
+    @property
+    def can_update_status(self):
+        """Check if order status can be updated"""
+        return self.status not in ['delivered', 'cancelled']
+    
+    def get_next_status(self):
+        """Get the next logical status in progression"""
+        if self.status == 'pending':
+            return 'confirmed'
+        elif self.status == 'confirmed':
+            return 'shipped'
+        elif self.status == 'shipped':
+            return 'delivered'
+        return None
     
     def save(self, *args, **kwargs):
         if not self.order_number:
