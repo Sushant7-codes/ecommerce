@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Cart, CartItem, Order
+from .models import Cart, CartItem
 from shop.models import Product
-from django.http import JsonResponse
+
 
 def root_redirect(request):
     """Smart redirect based on user type"""
