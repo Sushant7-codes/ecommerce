@@ -36,6 +36,7 @@
             <p class="text-xl font-bold text-white mb-2">Your Cart</p>
             <a href="{% url 'buyer:cart' %}" 
                class="text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center transition-colors duration-200">
+               
                 View Cart
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -50,7 +51,8 @@
             <p class="text-xl font-bold text-white mb-2">Shop Now</p>
             <a href="{% url 'buyer:product_list' %}" 
                class="text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center transition-colors duration-200">
-                Browse Products
+               
+               Browse Products
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
@@ -62,12 +64,18 @@
                 <span class="text-2xl">⭐</span>
             </div>
             <p class="text-xl font-bold text-white mb-2">Featured</p>
-            <p class="text-purple-400 font-medium">Hot Deals</p>
+             <a href="#featured-products"  
+               class="text-purple-400 hover:text-purple-300 font-medium inline-flex items-center transition-colors duration-200">
+                Hot Deals
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
         </div>
     </div>
 
     <!-- Featured Products -->
-    <section class="mb-16">
+    <section id="featured-products" class="mb-16">  <!-- ADDED: id for anchor link -->
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-4xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
                 🔥 Featured Sports Gear
@@ -182,8 +190,6 @@
                 </div>
             </div>
         </div>
-
- 
     </div>
 </div>
 
@@ -205,6 +211,11 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
 }
 </style>
 {% endblock %}

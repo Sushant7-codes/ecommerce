@@ -294,54 +294,42 @@
     <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Active nav link tracking
+            // Active nav link tracking - URL BASED ONLY (no sessionStorage)
             const navLinks = document.querySelectorAll('.nav-link');
             const dashboardLinks = document.querySelectorAll('.dashboard-link');
             const currentPath = window.location.pathname;
             
-            // Function to clear all active states
+            console.log('Current Path:', currentPath); // Debug log
+            
+            // Clear all active states first
             function clearAllActive() {
                 navLinks.forEach(l => l.classList.remove('active'));
-                sessionStorage.removeItem('activeNavLink');
             }
             
-            // Check if we're on dashboard page - if so, clear all active states
-            if (currentPath.includes('/dashboard')) {
-                clearAllActive();
-            } else {
-                // Normal nav link activation logic
-                navLinks.forEach(link => {
-                    const linkPath = link.getAttribute('href');
-                    
-                    // Check if link matches current path exactly or if current path starts with link path (for nested routes)
-                    if (linkPath === currentPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
-                        link.classList.add('active');
-                    }
-                    
-                    // Add click handler to set active state
-                    link.addEventListener('click', function(e) {
-                        // Remove active from all links
-                        clearAllActive();
-                        // Add active to clicked link
-                        this.classList.add('active');
-                        
-                        // Store active link in sessionStorage
-                        sessionStorage.setItem('activeNavLink', this.getAttribute('href'));
-                    });
-                });
+            // Set active state based on current URL only
+            navLinks.forEach(link => {
+                const linkPath = link.getAttribute('href');
                 
-                // Check sessionStorage for previously active link (only if not on dashboard)
-                const storedActiveLink = sessionStorage.getItem('activeNavLink');
-                if (storedActiveLink) {
-                    navLinks.forEach(link => {
-                        if (link.getAttribute('href') === storedActiveLink) {
-                            link.classList.add('active');
-                        }
-                    });
+                console.log('Checking link:', linkPath, 'against current:', currentPath); // Debug log
+                
+                // Special handling for home page
+                if (linkPath === '/' && (currentPath === '/' || currentPath === '/home/')) {
+                    link.classList.add('active');
+                    console.log('Home link activated'); // Debug log
                 }
-            }
+                // Check if current path matches the link path exactly
+                else if (linkPath === currentPath) {
+                    link.classList.add('active');
+                    console.log('Exact match activated:', linkPath); // Debug log
+                }
+                // Check if current path starts with link path (for nested routes)
+                else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
+                    link.classList.add('active');
+                    console.log('Starts with activated:', linkPath); // Debug log
+                }
+            });
             
-            // Dashboard button click handlers - clear all active nav states before navigating
+            // Dashboard links - always clear active states before navigating
             dashboardLinks.forEach(dashboardLink => {
                 dashboardLink.addEventListener('click', function(e) {
                     clearAllActive();
@@ -369,7 +357,7 @@
                     }
                 }
             });
-
+        
             // Auto-hide messages
             const messages = document.querySelectorAll('.message-alert');
             messages.forEach(function(message) {
@@ -382,7 +370,7 @@
                     }, 500);
                 }, 5000);
             });
-
+        
             // Remove empty message container
             const messageContainer = document.getElementById('message-container');
             if (messageContainer && messageContainer.children.length === 0) {
