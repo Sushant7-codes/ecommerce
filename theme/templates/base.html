@@ -498,103 +498,130 @@
     </div>
 
     <!-- Scripts -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Active nav link tracking
-            const navLinks = document.querySelectorAll('.nav-link');
-            const currentPath = window.location.pathname;
-            
-            console.log('Current Path:', currentPath);
-            
-            // Set active state based on current URL
-            navLinks.forEach(link => {
-                const linkPath = link.getAttribute('href');
-                
-                // Special handling for home/dashboard
-                if ((linkPath === '/' || linkPath === '{% url "buyer:dashboard" %}') && 
-                    (currentPath === '/' || currentPath === '{% url "buyer:dashboard" %}')) {
-                    link.classList.add('active');
-                }
-                // Check if current path matches the link path
-                else if (linkPath === currentPath) {
-                    link.classList.add('active');
-                }
-                // Check for nested routes
-                else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
-                    link.classList.add('active');
-                }
-            });
-            
-            // Mobile menu toggle
-            const mobileMenuButton = document.getElementById('mobileMenuButton');
-            const mobileMenu = document.getElementById('mobileMenu');
-            
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('hidden');
-                    if (!mobileMenu.classList.contains('hidden')) {
-                        mobileMenu.classList.add('mobile-menu-enter');
-                    }
-                });
-            }
-            
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                    if (!event.target.closest('#mobileMenu') && !event.target.closest('#mobileMenuButton')) {
-                        mobileMenu.classList.add('hidden');
-                    }
-                }
-            });
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Active nav link tracking - FIXED VERSION
+        const navLinks = document.querySelectorAll('.nav-link');
+        const currentPath = window.location.pathname;
         
-            // Auto-hide messages
-            const messages = document.querySelectorAll('.message-alert');
-            messages.forEach(function(message) {
+        console.log('Current Path:', currentPath);
+        
+        // Set active state based on current URL - IMPROVED LOGIC
+        navLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            
+            // Remove any trailing slashes for consistent comparison
+            const cleanCurrentPath = currentPath.replace(/\/$/, '');
+            const cleanLinkPath = linkPath ? linkPath.replace(/\/$/, '') : '';
+            
+            console.log('Checking link:', cleanLinkPath, 'against:', cleanCurrentPath);
+            
+            // Special handling for home/dashboard
+            if ((cleanLinkPath === '' || 
+                 cleanLinkPath === '{% url "buyer:dashboard" %}'.replace(/\/$/, '') || 
+                 cleanLinkPath === '{% url "shop:dashboard" %}'.replace(/\/$/, '')) && 
+                (cleanCurrentPath === '' || 
+                 cleanCurrentPath === '{% url "buyer:dashboard" %}'.replace(/\/$/, '') || 
+                 cleanCurrentPath === '{% url "shop:dashboard" %}'.replace(/\/$/, ''))) {
+                link.classList.add('active');
+                console.log('Matched dashboard/home');
+            }
+            // Exact match
+            else if (cleanLinkPath === cleanCurrentPath) {
+                link.classList.add('active');
+                console.log('Exact match');
+            }
+            // Seller section matching - improved logic
+            else if (cleanLinkPath && cleanCurrentPath.startsWith(cleanLinkPath)) {
+                // Only activate if it's a meaningful section match
+                const remainingPath = cleanCurrentPath.slice(cleanLinkPath.length);
+                if (remainingPath === '' || remainingPath.startsWith('/') && !remainingPath.includes('/')) {
+                    link.classList.add('active');
+                    console.log('Section match');
+                }
+            }
+            // Special case for seller order detail pages
+            else if (cleanCurrentPath.includes('/orders/') && cleanLinkPath === '{% url "shop:order_list" %}'.replace(/\/$/, '')) {
+                link.classList.add('active');
+                console.log('Order detail page, activating Orders link');
+            }
+            // Special case for seller product edit pages
+            else if (cleanCurrentPath.includes('/products/edit/') && cleanLinkPath === '{% url "shop:product_list" %}'.replace(/\/$/, '')) {
+                link.classList.add('active');
+                console.log('Product edit page, activating Products link');
+            }
+        });
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('mobile-menu-enter');
+                }
+            });
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                if (!event.target.closest('#mobileMenu') && !event.target.closest('#mobileMenuButton')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            }
+        });
+    
+        // Auto-hide messages
+        const messages = document.querySelectorAll('.message-alert');
+        messages.forEach(function(message) {
+            setTimeout(function() {
+                message.style.transition = 'all 0.5s ease';
+                message.style.opacity = '0';
+                message.style.transform = 'translateX(100%) scale(0.8)';
                 setTimeout(function() {
-                    message.style.transition = 'all 0.5s ease';
-                    message.style.opacity = '0';
-                    message.style.transform = 'translateX(100%) scale(0.8)';
-                    setTimeout(function() {
-                        if (message.parentElement) {
-                            message.remove();
-                        }
-                    }, 500);
-                }, 5000);
-            });
-        
-            // Remove empty message container
-            const messageContainer = document.getElementById('message-container');
-            if (messageContainer && messageContainer.children.length === 0) {
-                messageContainer.remove();
+                    if (message.parentElement) {
+                        message.remove();
+                    }
+                }, 500);
+            }, 5000);
+        });
+    
+        // Remove empty message container
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer && messageContainer.children.length === 0) {
+            messageContainer.remove();
+        }
+
+        // Global loading function
+        window.showLoading = function() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingOverlay').classList.add('flex');
+        };
+
+        window.hideLoading = function() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('loadingOverlay').classList.remove('flex');
+        };
+
+        // Add loading to all form submissions
+        document.addEventListener('submit', function(e) {
+            if (e.target.tagName === 'FORM') {
+                window.showLoading();
             }
+        });
 
-            // Global loading function
-            window.showLoading = function() {
-                document.getElementById('loadingOverlay').classList.remove('hidden');
-                document.getElementById('loadingOverlay').classList.add('flex');
-            };
-
-            window.hideLoading = function() {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('loadingOverlay').classList.remove('flex');
-            };
-
-            // Add loading to all form submissions
-            document.addEventListener('submit', function(e) {
-                if (e.target.tagName === 'FORM') {
+        // Add loading to important buttons
+        document.querySelectorAll('button[type="submit"], .btn-primary, a[href*="checkout"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.getAttribute('href') && this.getAttribute('href').includes('checkout')) {
                     window.showLoading();
                 }
             });
-
-            // Add loading to important buttons
-            document.querySelectorAll('button[type="submit"], .btn-primary, a[href*="checkout"]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (this.getAttribute('href') && this.getAttribute('href').includes('checkout')) {
-                        window.showLoading();
-                    }
-                });
-            });
         });
-    </script>
+    });
+</script>
 </body>
 </html>

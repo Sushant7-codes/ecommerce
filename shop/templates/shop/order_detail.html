@@ -113,15 +113,15 @@
             {% csrf_token %}
             <div class="flex-1">
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-2">New Status</label>
-                <select name="status" id="status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select name="status" id="status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800 appearance-none">
                     {% for status_value, status_display in order.STATUS_CHOICES %}
                     {% if status_value != order.status and status_value != 'cancelled' %}
-                    <option value="{{ status_value }}">{{ status_display }}</option>
+                    <option value="{{ status_value }}" class="text-gray-800 bg-white">{{ status_display }}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 font-semibold">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 font-semibold whitespace-nowrap">
                 Update Status
             </button>
         </form>
@@ -148,4 +148,33 @@
         </a>
     </div>
 </div>
+
+<style>
+/* Remove default dropdown styling and ensure proper appearance */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1em 1em;
+    padding-right: 2.5rem;
+}
+
+/* Ensure dropdown options have proper contrast */
+select option {
+    background-color: white;
+    color: #1f2937;
+    padding: 8px 12px;
+}
+
+/* Focus state */
+select:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+    border-color: #3b82f6;
+}
+</style>
 {% endblock %}
