@@ -189,3 +189,51 @@
     {% endif %}
 </div>
 {% endblock %}
+
+<script>
+function updateOrderStatus(selectElement, orderId) {
+    const newStatus = selectElement.value;
+    if (!newStatus) return;
+    
+    if (confirm(`Are you sure you want to update this order to "${newStatus}"?`)) {
+        // Send AJAX request to update status
+        fetch(`/shop/orders/${orderId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `status=${newStatus}`
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload(); // Reload to see the updated status
+            } else {
+                alert('Error updating status');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating status');
+        });
+    }
+    
+    // Reset the select
+    selectElement.value = '';
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

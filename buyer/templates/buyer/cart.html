@@ -167,12 +167,14 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Checkout Button -->
-                <button id="checkout-btn" disabled
-                   class="w-full py-4 rounded-2xl bg-gray-600 text-gray-400 font-bold text-lg cursor-not-allowed transition-all duration-300 mb-4">
-                    Select Items to Checkout
-                </button>
+                <!-- Checkout Button -->
+                <a id="checkout-link" href="{% url 'buyer:checkout' %}">
+                    <button id="checkout-btn" disabled
+                       class="w-full py-4 rounded-2xl bg-gray-600 text-gray-400 font-bold text-lg cursor-not-allowed transition-all duration-300 mb-4">
+                        Select Items to Checkout
+                    </button>
+                </a>
 
                 <div class="text-center space-y-2">
                     <p class="text-gray-400 text-sm">
@@ -225,7 +227,6 @@ input[type="checkbox"] {
     border-radius: 0.25rem;
 }
 </style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selectAllCheckbox = document.getElementById('select-all');
@@ -235,50 +236,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const finalTotal = document.getElementById('final-total');
     const checkoutBtn = document.getElementById('checkout-btn');
     const selectedItemsInfo = document.getElementById('selected-items-info');
+    const checkoutForm = document.getElementById('checkout-form');
+    const selectedItemsInput = document.getElementById('selected-items-input');
 
     // Update selected items and pricing
-    function updateSelectedItems() {
-        let selectedItems = 0;
-        let subtotal = 0;
-        
-        itemCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                selectedItems++;
-                const itemId = checkbox.dataset.itemId;
-                const itemTotalElement = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
-                
-                if (itemTotalElement) {
-                    const itemTotal = parseFloat(itemTotalElement.textContent.replace('$', ''));
-                    subtotal += itemTotal;
-                }
+// Update selected items and pricing
+function updateSelectedItems() {
+    let selectedItems = 0;
+    let subtotal = 0;
+    const selectedItemIds = [];
+    
+    itemCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedItems++;
+            const itemId = checkbox.dataset.itemId;
+            selectedItemIds.push(itemId);
+            
+            const itemTotalElement = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
+            if (itemTotalElement) {
+                const itemTotal = parseFloat(itemTotalElement.textContent.replace('$', ''));
+                subtotal += itemTotal;
             }
-        });
-
-        // Update UI
-        selectedCount.textContent = `${selectedItems} item${selectedItems !== 1 ? 's' : ''} selected`;
-        selectedSubtotal.textContent = `$${subtotal.toFixed(2)}`;
-        finalTotal.textContent = `$${subtotal.toFixed(2)}`;
-        
-        // Update checkout button
-        if (selectedItems > 0) {
-            checkoutBtn.disabled = false;
-            checkoutBtn.className = 'w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold text-lg shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:shadow-[0_0_40px_rgba(16,185,129,0.8)] hover:scale-105 transform transition-all duration-300 mb-4';
-            checkoutBtn.textContent = `Proceed to Checkout (${selectedItems} items)`;
-            selectedItemsInfo.textContent = `${selectedItems} item${selectedItems !== 1 ? 's' : ''} selected for checkout`;
-        } else {
-            checkoutBtn.disabled = true;
-            checkoutBtn.className = 'w-full py-4 rounded-2xl bg-gray-600 text-gray-400 font-bold text-lg cursor-not-allowed transition-all duration-300 mb-4';
-            checkoutBtn.textContent = 'Select Items to Checkout';
-            selectedItemsInfo.textContent = 'No items selected';
         }
+    });
 
-        // Update select all checkbox state
-        const allChecked = selectedItems === itemCheckboxes.length;
-        const someChecked = selectedItems > 0 && selectedItems < itemCheckboxes.length;
+    // Update UI
+    selectedCount.textContent = `${selectedItems} item${selectedItems !== 1 ? 's' : ''} selected`;
+    selectedSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+    finalTotal.textContent = `$${subtotal.toFixed(2)}`;
+    
+    // Update checkout button and link
+    const checkoutLink = document.getElementById('checkout-link');
+    if (selectedItems > 0) {
+        checkoutBtn.disabled = false;
+        checkoutBtn.className = 'w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold text-lg shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:shadow-[0_0_40px_rgba(16,185,129,0.8)] hover:scale-105 transform transition-all duration-300 mb-4';
+        checkoutBtn.textContent = `Proceed to Checkout (${selectedItems} items)`;
+        selectedItemsInfo.textContent = `${selectedItems} item${selectedItems !== 1 ? 's' : ''} selected for checkout`;
         
-        selectAllCheckbox.checked = allChecked;
-        selectAllCheckbox.indeterminate = someChecked;
+        // Update checkout link with selected items
+        checkoutLink.href = `{% url 'buyer:checkout' %}?selected_items=${selectedItemIds.join(',')}`;
+    } else {
+        checkoutBtn.disabled = true;
+        checkoutBtn.className = 'w-full py-4 rounded-2xl bg-gray-600 text-gray-400 font-bold text-lg cursor-not-allowed transition-all duration-300 mb-4';
+        checkoutBtn.textContent = 'Select Items to Checkout';
+        selectedItemsInfo.textContent = 'No items selected';
+        checkoutLink.href = "{% url 'buyer:checkout' %}";
     }
+
+    // Update select all checkbox state
+    const allChecked = selectedItems === itemCheckboxes.length;
+    const someChecked = selectedItems > 0 && selectedItems < itemCheckboxes.length;
+    
+    selectAllCheckbox.checked = allChecked;
+    selectAllCheckbox.indeterminate = someChecked;
+}
 
     // Select All functionality
     selectAllCheckbox.addEventListener('change', function() {
@@ -331,9 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     updateSelectedItems();
-                    // No success toast notification - removed
                 } else {
-                    // Only show error toast for actual errors
                     console.error('Quantity update failed:', data.error);
                 }
             })

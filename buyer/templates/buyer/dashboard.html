@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-12 text-gray-100 relative overflow-hidden">
@@ -28,7 +29,7 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
         <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(59,130,246,0.4)] transition-all duration-300 transform hover:-translate-y-2 p-6 text-center">
             <div class="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(6,182,212,0.5)]">
                 <span class="text-2xl">🛒</span>
@@ -36,7 +37,6 @@
             <p class="text-xl font-bold text-white mb-2">Your Cart</p>
             <a href="{% url 'buyer:cart' %}" 
                class="text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center transition-colors duration-200">
-               
                 View Cart
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -51,8 +51,7 @@
             <p class="text-xl font-bold text-white mb-2">Shop Now</p>
             <a href="{% url 'buyer:product_list' %}" 
                class="text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center transition-colors duration-200">
-               
-               Browse Products
+                Browse Products
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
@@ -61,11 +60,25 @@
         
         <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(168,85,247,0.4)] transition-all duration-300 transform hover:-translate-y-2 p-6 text-center">
             <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+                <span class="text-2xl">📋</span>
+            </div>
+            <p class="text-xl font-bold text-white mb-2">My Orders</p>
+            <a href="{% url 'buyer:order_history' %}" 
+               class="text-purple-400 hover:text-purple-300 font-medium inline-flex items-center transition-colors duration-200">
+                View Orders
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+
+        <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(245,158,11,0.4)] transition-all duration-300 transform hover:-translate-y-2 p-6 text-center">
+            <div class="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(245,158,11,0.5)]">
                 <span class="text-2xl">⭐</span>
             </div>
             <p class="text-xl font-bold text-white mb-2">Featured</p>
-             <a href="#featured-products"  
-               class="text-purple-400 hover:text-purple-300 font-medium inline-flex items-center transition-colors duration-200">
+            <a href="#featured-products"  
+               class="text-amber-400 hover:text-amber-300 font-medium inline-flex items-center transition-colors duration-200">
                 Hot Deals
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -74,8 +87,113 @@
         </div>
     </div>
 
+    <!-- Recent Orders & Why Shop With Us -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <!-- Recent Orders Section -->
+        <div class="bg-gray-800 rounded-2xl p-6 border border-purple-500/20">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    📋 Recent Orders
+                    {% if recent_orders %}
+                    <span class="ml-3 text-sm bg-purple-600 text-white px-3 py-1 rounded-full">
+                        {{ recent_orders|length }}
+                    </span>
+                    {% endif %}
+                </h2>
+                <a href="{% url 'buyer:order_history' %}" 
+                   class="text-purple-400 hover:text-purple-300 font-medium text-sm flex items-center space-x-1">
+                    <span>View All</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            {% if recent_orders %}
+            <div class="space-y-4">
+                {% for order in recent_orders %}
+                <div class="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl border border-gray-600 hover:border-purple-500/30 transition-all">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-500 rounded-lg flex items-center justify-center">
+                            <span class="text-white">📦</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white">#{{ order.order_number }}</h3>
+                            <p class="text-gray-400 text-sm">{{ order.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium 
+                            {% if order.status == 'pending' %}bg-yellow-500/20 text-yellow-400
+                            {% elif order.status == 'confirmed' %}bg-blue-500/20 text-blue-400
+                            {% elif order.status == 'shipped' %}bg-purple-500/20 text-purple-400
+                            {% elif order.status == 'delivered' %}bg-green-500/20 text-green-400
+                            {% else %}bg-red-500/20 text-red-400{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                        <p class="text-white font-bold mt-1">₹{{ order.total_amount }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">📦</span>
+                </div>
+                <p class="text-gray-400 mb-4">No orders yet</p>
+                <a href="{% url 'buyer:product_list' %}" 
+                   class="bg-gradient-to-r from-purple-600 to-blue-500 text-white font-medium py-2 px-6 rounded-xl hover:from-purple-700 hover:to-blue-600 transform hover:scale-105 transition-all duration-300 inline-flex items-center space-x-2">
+                    <span>Start Shopping</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Why Shop With Us -->
+        <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(16,185,129,0.3)] transition-all duration-300 p-6">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent mb-6">🌟 Why Shop With Us?</h3>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                        <span class="text-lg">🚚</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-200 font-medium">Fast & Free Shipping</span>
+                        <p class="text-gray-400 text-sm">Free delivery on all orders</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                        <span class="text-lg">✅</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-200 font-medium">Quality Guaranteed</span>
+                        <p class="text-gray-400 text-sm">Premium sports equipment</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                        <span class="text-lg">🔄</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-200 font-medium">Easy Returns</span>
+                        <p class="text-gray-400 text-sm">30-day return policy</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                        <span class="text-lg">💳</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-200 font-medium">Secure Payment</span>
+                        <p class="text-gray-400 text-sm">COD & Online payments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Featured Products -->
-    <section id="featured-products" class="mb-16">  <!-- ADDED: id for anchor link -->
+    <section id="featured-products" class="mb-16">
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-4xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
                 🔥 Featured Sports Gear
@@ -105,7 +223,7 @@
                     <!-- Price Tag -->
                     <div class="absolute top-3 right-3">
                         <span class="px-4 py-1.5 text-sm font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-300/70">
-                            ${{ product.price }}
+                            ₹{{ product.price }}
                         </span>
                     </div>
                 </div>
@@ -164,30 +282,42 @@
         </div>
     </section>
 
-    <!-- Additional Sections -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Why Shop With Us -->
-        <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(16,185,129,0.3)] transition-all duration-300 p-6">
-            <h3 class="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent mb-6">🌟 Why Shop With Us?</h3>
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Need Help Section -->
+        <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)] transition-all duration-300 p-6">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-6">🛟 Need Help?</h3>
             <div class="space-y-4">
-                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
-                    <div class="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-                        <span class="text-lg">🚚</span>
+                <div class="flex items-center space-x-4 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200 cursor-pointer">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+                        <span class="text-lg">📞</span>
                     </div>
-                    <span class="text-gray-200 font-medium">Fast & Free Shipping</span>
-                </div>
-                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
-                    <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-                        <span class="text-lg">✅</span>
+                    <div>
+                        <span class="text-gray-200 font-medium">24/7 Customer Support</span>
+                        <p class="text-gray-400 text-sm">Get help with your orders</p>
                     </div>
-                    <span class="text-gray-200 font-medium">Quality Guaranteed</span>
                 </div>
-                <div class="flex items-center space-x-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                        <span class="text-lg">🔄</span>
+                <div class="flex items-center space-x-4 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200 cursor-pointer">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                        <span class="text-lg">💬</span>
                     </div>
-                    <span class="text-gray-200 font-medium">Easy Returns</span>
+                    <div>
+                        <span class="text-gray-200 font-medium">Live Chat</span>
+                        <p class="text-gray-400 text-sm">Instant assistance</p>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Track Your Order -->
+        <div class="group relative rounded-3xl overflow-hidden bg-gray-900/70 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] hover:shadow-[0_0_35px_rgba(168,85,247,0.3)] transition-all duration-300 p-6">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent mb-6">🚚 Track Your Order</h3>
+            <div class="space-y-4">
+                <p class="text-gray-300 mb-4">Check the status of your recent orders and track shipments.</p>
+                <a href="{% url 'buyer:order_history' %}" 
+                   class="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-bold py-3 px-6 rounded-xl hover:from-purple-700 hover:to-fuchsia-700 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2">
+                    <span>📋 View Order History</span>
+                </a>
             </div>
         </div>
     </div>
@@ -216,6 +346,21 @@
 /* Smooth scrolling for anchor links */
 html {
   scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
 }
 </style>
 {% endblock %}

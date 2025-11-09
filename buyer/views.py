@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import Cart, CartItem
-from shop.models import Product
+from shop.models import Product, Order, OrderItem
 
 def root_redirect(request):
     """Smart redirect based on user type"""
@@ -18,8 +19,12 @@ def root_redirect(request):
 @login_required
 def dashboard(request):
     featured_products = Product.objects.filter(is_active=True)[:8]
+    # Get recent orders for the dashboard
+    recent_orders = Order.objects.filter(customer=request.user).order_by('-created_at')[:3]
+    
     context = {
         'featured_products': featured_products,
+        'recent_orders': recent_orders,
     }
     return render(request, 'buyer/dashboard.html', context)
 
@@ -98,7 +103,6 @@ def remove_from_cart(request, item_id):
     messages.success(request, f"{product_name} removed from cart!")
     return redirect('buyer:cart')
 
-# NEW VIEWS FOR ENHANCED CART FUNCTIONALITY
 @login_required
 def update_cart_item_quantity(request, item_id):
     """Update quantity for a specific cart item with stock validation"""
@@ -131,6 +135,7 @@ def update_cart_item_quantity(request, item_id):
         })
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
 @login_required
 def remove_single_quantity(request, item_id):
     """Remove one quantity of an item"""
@@ -150,3 +155,142 @@ def remove_single_quantity(request, item_id):
         messages.success(request, f"{product_name} removed from cart!")
     
     return redirect('buyer:cart')
+
+# CHECKOUT VIEWS
+@login_required
+@login_required
+def checkout(request):
+    if not request.user.is_buyer():
+        messages.error(request, "Access denied. Buyer account required.")
+        return redirect('accounts:retail_admin_login')
+    
+    cart = get_object_or_404(Cart, user=request.user)
+    
+    # Check if cart is empty
+    if not cart.items.exists():
+        messages.error(request, "Your cart is empty. Add some items to checkout.")
+        return redirect('buyer:cart')
+    
+    # Handle selected items from GET parameters (for initial page load)
+    selected_items_param = request.GET.get('selected_items', '')
+    if selected_items_param:
+        selected_item_ids = [int(id) for id in selected_items_param.split(',') if id.isdigit()]
+        cart_items = cart.items.filter(id__in=selected_item_ids)
+    else:
+        cart_items = cart.items.all()
+    
+    # Check stock availability for selected items
+    for item in cart_items:
+        if item.quantity > item.product.stock_quantity:
+            messages.error(request, f"Sorry, only {item.product.stock_quantity} units of {item.product.name} are available.")
+            return redirect('buyer:cart')
+    
+    if request.method == 'POST':
+        # Process checkout form
+        shipping_address = request.POST.get('shipping_address')
+        customer_phone = request.POST.get('customer_phone')
+        customer_email = request.POST.get('customer_email')
+        payment_method = request.POST.get('payment_method')
+        
+        # Validate required fields
+        if not all([shipping_address, customer_phone, customer_email, payment_method]):
+            messages.error(request, "Please fill all required fields.")
+            return render(request, 'buyer/checkout.html', {'cart': cart})
+        
+        # Get selected items from POST
+        selected_items_param = request.POST.get('selected_items', '')
+        if selected_items_param:
+            selected_item_ids = [int(id.strip()) for id in selected_items_param.split(',') if id.strip().isdigit()]
+            cart_items = cart.items.filter(id__in=selected_item_ids)
+        else:
+            cart_items = cart.items.all()
+        
+        # Check if we have items to process
+        if not cart_items.exists():
+            messages.error(request, "No items selected for checkout.")
+            return render(request, 'buyer/checkout.html', {'cart': cart})
+        
+        # Calculate total amount
+        total_amount = sum(item.total_price() for item in cart_items)
+        
+        # Create order - FIXED: Assign the correct seller (first product's seller)
+        try:
+            # Get the seller from the first product in the order
+            first_product_seller = cart_items.first().product.seller
+            
+            order = Order.objects.create(
+                customer=request.user,
+                seller=first_product_seller,  # FIXED: Assign actual product seller
+                total_amount=total_amount,
+                shipping_address=shipping_address,
+                customer_phone=customer_phone,
+                status='pending'
+            )
+            
+            # Create order items and update product stock
+            for cart_item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    price=cart_item.product.price
+                )
+                
+                # Update product stock
+                product = cart_item.product
+                product.stock_quantity -= cart_item.quantity
+                product.save()
+            
+            # Remove purchased items from cart
+            cart_items.delete()
+            
+            # Redirect to success page
+            return redirect('buyer:checkout_success', order_number=order.order_number)
+            
+        except Exception as e:
+            messages.error(request, f"Error creating order: {str(e)}")
+            return render(request, 'buyer/checkout.html', {'cart': cart})
+    
+    context = {
+        'cart': cart,
+    }
+    return render(request, 'buyer/checkout.html', context)
+
+
+@login_required
+def checkout_success(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    context = {
+        'order': order,
+    }
+    return render(request, 'buyer/checkout_success.html', context)
+
+@login_required
+def order_history(request):
+    if not request.user.is_buyer():
+        messages.error(request, "Access denied. Buyer account required.")
+        return redirect('accounts:retail_admin_login')
+    
+    orders = Order.objects.filter(customer=request.user).order_by('-created_at')
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'buyer/order_history.html', context)
+
+@login_required
+def order_detail(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    context = {
+        'order': order,
+    }
+    return render(request, 'buyer/order_detail.html', context)
+
+# Dummy payment webhook for Stripe simulation
+@csrf_exempt
+@login_required
+def stripe_webhook(request):
+    """Simulate Stripe payment webhook"""
+    if request.method == 'POST':
+        # In a real implementation, you'd verify the Stripe signature
+        # For now, we'll just simulate a successful payment
+        return JsonResponse({'status': 'success'})

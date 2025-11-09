@@ -17,15 +17,6 @@ class CustomUser(AbstractUser):
         default=Roles.BUYER,
     )
     
-    # REMOVE or COMMENT OUT the workplace field for now
-    # workplace = models.ForeignKey(
-    #     'shop.Shop', 
-    #     on_delete=models.CASCADE, 
-    #     null=True, 
-    #     blank=True,
-    #     related_name='staff_members'
-    # )
-    
     def is_buyer(self):
         return self.role == self.Roles.BUYER
     

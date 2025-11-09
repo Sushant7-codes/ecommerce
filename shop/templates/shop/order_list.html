@@ -166,6 +166,19 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- Quick Status Update -->
+                    <div class="mt-2">
+                        <select onchange="updateOrderStatus(this, {{ order.id }})" 
+                                class="w-full text-xs p-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                            <option value="">Quick Update</option>
+                            {% for status_value, status_display in status_choices %}
+                            {% if status_value != order.status %}
+                            <option value="{{ status_value }}">{{ status_display }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
             {% endfor %}
