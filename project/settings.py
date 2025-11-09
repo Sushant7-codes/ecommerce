@@ -159,12 +159,3 @@ DEFAULT_FROM_EMAIL = "sushantpahari06@gmail.com"
 MAX_ATTEMPTS = 3
 
 
-
-# # Stripe Configuration - TEST MODE
-# STRIPE_PUBLISHABLE_KEY = 'pk_test_51P5l8hK1J5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y'
-# STRIPE_SECRET_KEY = 'sk_test_51P5l8hK1J5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y5y'
-# STRIPE_WEBHOOK_SECRET = 'whsec_test_1234567890abcdef'
-
-# # Stripe Success URLs
-# STRIPE_SUCCESS_URL = 'http://127.0.0.1:8000/checkout/success/'
-# STRIPE_CANCEL_URL = 'http://127.0.0.1:8000/checkout/cancel/'
