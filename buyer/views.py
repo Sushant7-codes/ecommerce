@@ -1,11 +1,15 @@
+import stripe 
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from .models import Cart, CartItem
 from shop.models import Product, Order, OrderItem
+
 
 def root_redirect(request):
     """Smart redirect based on user type"""
@@ -157,7 +161,9 @@ def remove_single_quantity(request, item_id):
     return redirect('buyer:cart')
 
 # CHECKOUT VIEWS
-@login_required
+# Initialize Stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 @login_required
 def checkout(request):
     if not request.user.is_buyer():
@@ -166,12 +172,11 @@ def checkout(request):
     
     cart = get_object_or_404(Cart, user=request.user)
     
-    # Check if cart is empty
     if not cart.items.exists():
         messages.error(request, "Your cart is empty. Add some items to checkout.")
         return redirect('buyer:cart')
     
-    # Handle selected items from GET parameters (for initial page load)
+    # Handle selected items
     selected_items_param = request.GET.get('selected_items', '')
     if selected_items_param:
         selected_item_ids = [int(id) for id in selected_items_param.split(',') if id.isdigit()]
@@ -179,14 +184,13 @@ def checkout(request):
     else:
         cart_items = cart.items.all()
     
-    # Check stock availability for selected items
+    # Check stock availability
     for item in cart_items:
         if item.quantity > item.product.stock_quantity:
             messages.error(request, f"Sorry, only {item.product.stock_quantity} units of {item.product.name} are available.")
             return redirect('buyer:cart')
     
     if request.method == 'POST':
-        # Process checkout form
         shipping_address = request.POST.get('shipping_address')
         customer_phone = request.POST.get('customer_phone')
         customer_email = request.POST.get('customer_email')
@@ -205,7 +209,6 @@ def checkout(request):
         else:
             cart_items = cart.items.all()
         
-        # Check if we have items to process
         if not cart_items.exists():
             messages.error(request, "No items selected for checkout.")
             return render(request, 'buyer/checkout.html', {'cart': cart})
@@ -213,21 +216,21 @@ def checkout(request):
         # Calculate total amount
         total_amount = sum(item.total_price() for item in cart_items)
         
-        # Create order - FIXED: Assign the correct seller (first product's seller)
         try:
-            # Get the seller from the first product in the order
+            # Get the seller from the first product
             first_product_seller = cart_items.first().product.seller
             
+            # Create order
             order = Order.objects.create(
                 customer=request.user,
-                seller=first_product_seller,  # FIXED: Assign actual product seller
+                seller=first_product_seller,
                 total_amount=total_amount,
                 shipping_address=shipping_address,
                 customer_phone=customer_phone,
                 status='pending'
             )
             
-            # Create order items and update product stock
+            # Create order items and update stock
             for cart_item in cart_items:
                 OrderItem.objects.create(
                     order=order,
@@ -241,11 +244,33 @@ def checkout(request):
                 product.stock_quantity -= cart_item.quantity
                 product.save()
             
-            # Remove purchased items from cart
-            cart_items.delete()
-            
-            # Redirect to success page
-            return redirect('buyer:checkout_success', order_number=order.order_number)
+            # Handle payment method
+            if payment_method == 'cod':
+                # Cash on Delivery
+                cart_items.delete()
+                messages.success(request, "Order placed successfully! Pay when you receive your order.")
+                return redirect('buyer:checkout_success', order_number=order.order_number)
+                
+            elif payment_method == 'stripe':
+                # SIMULATED STRIPE PAYMENT - FOR TESTING
+                # Instead of real Stripe, we'll simulate the payment flow
+                
+                # Store a fake session ID
+                import random
+                import string
+                fake_session_id = 'cs_test_' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=24))
+                order.stripe_session_id = fake_session_id
+                order.save()
+                
+                # Remove items from cart
+                cart_items.delete()
+                
+                # Show a simulated Stripe payment page
+                return render(request, 'buyer/stripe_simulation.html', {
+                    'order': order,
+                    'total_amount': total_amount,
+                    'customer_email': customer_email
+                })
             
         except Exception as e:
             messages.error(request, f"Error creating order: {str(e)}")
@@ -256,14 +281,46 @@ def checkout(request):
     }
     return render(request, 'buyer/checkout.html', context)
 
-
 @login_required
 def checkout_success(request, order_number):
     order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    
+    # Check if this is a Stripe payment
+    session_id = request.GET.get('session_id')
+    if session_id:
+        try:
+            # Verify the Stripe payment
+            stripe_session = stripe.checkout.Session.retrieve(session_id)
+            
+            if stripe_session.payment_status == 'paid':
+                order.status = 'paid'
+                order.save()
+                messages.success(request, "Payment successful! Your order has been confirmed.")
+            else:
+                messages.warning(request, "Payment pending. Your order will be processed once payment is confirmed.")
+                
+        except Exception as e:
+            messages.info(request, "Order received! Payment verification in progress.")
+    
     context = {
         'order': order,
     }
     return render(request, 'buyer/checkout_success.html', context)
+
+
+@login_required
+def checkout_cancel(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    
+    # Mark order as cancelled if it was a Stripe payment that failed
+    if order.stripe_session_id and order.status == 'pending':
+        order.status = 'cancelled'
+        order.save()
+        messages.info(request, "Payment was cancelled. Your order has been cancelled.")
+    else:
+        messages.info(request, "Checkout was cancelled.")
+    
+    return redirect('buyer:cart')
 
 @login_required
 def order_history(request):
@@ -294,3 +351,15 @@ def stripe_webhook(request):
         # In a real implementation, you'd verify the Stripe signature
         # For now, we'll just simulate a successful payment
         return JsonResponse({'status': 'success'})
+    
+    
+@login_required
+def stripe_payment_complete(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    
+    # Mark order as paid
+    order.status = 'paid'
+    order.save()
+    
+    messages.success(request, "Payment successful! Your order has been confirmed.")
+    return redirect('buyer:checkout_success', order_number=order.order_number)

@@ -94,10 +94,6 @@
                             <span>🖨️ Print Receipt</span>
                         </button>
                         
-                        <button id="screenshotBtn" 
-                                class="w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold py-3 px-4 rounded-xl hover:from-green-700 hover:to-emerald-600 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2">
-                            <span>📸 Screenshot Receipt</span>
-                        </button>
 
                         <a href="{% url 'buyer:order_history' %}" 
                            class="w-full bg-gray-700 text-white font-bold py-3 px-4 rounded-xl hover:bg-gray-600 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2">
@@ -133,10 +129,45 @@
 </div>
 
 <!-- Screenshot Script -->
+<!-- HTML2Canvas for screenshot functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 document.getElementById('screenshotBtn').addEventListener('click', function() {
-    // In a real implementation, you'd use html2canvas or similar library
-    alert('📸 Screenshot functionality would be implemented here! For now, use print or take a manual screenshot.');
+    const element = document.querySelector('.max-w-4xl');
+    const button = this;
+    
+    // Show loading state
+    button.innerHTML = '<span>⏳ Generating Receipt...</span>';
+    button.disabled = true;
+    
+    html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#111827'
+    }).then(function(canvas) {
+        // Convert canvas to image
+        const image = canvas.toDataURL('image/png');
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.download = `receipt-{{ order.order_number }}-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = image;
+        link.click();
+        
+        // Reset button
+        button.innerHTML = '<span>📸 Download Receipt</span>';
+        button.disabled = false;
+        
+    }).catch(function(error) {
+        console.error('Screenshot error:', error);
+        alert('Error generating receipt. Please try again or use print instead.');
+        
+        // Reset button
+        button.innerHTML = '<span>📸 Download Receipt</span>';
+        button.disabled = false;
+    });
 });
 </script>
 

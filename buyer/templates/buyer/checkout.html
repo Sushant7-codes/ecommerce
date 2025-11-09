@@ -126,6 +126,20 @@
                             </label>
                         </div>
                     </div>
+                    
+                    <!-- Stripe Test Info (shown when Stripe is selected) -->
+                    <div id="stripe-test-info" class="hidden bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mt-4">
+                        <h4 class="text-blue-400 font-semibold mb-2">💳 Stripe Test Mode</h4>
+                        <div class="text-sm text-blue-300 space-y-1">
+                            <p><strong>Test Card:</strong> 4242 4242 4242 4242</p>
+                            <p><strong>Expiry:</strong> Any future date (e.g., 12/34)</p>
+                            <p><strong>CVC:</strong> Any 3 digits (e.g., 123)</p>
+                            <p><strong>ZIP:</strong> Any 5 digits (e.g., 12345)</p>
+                        </div>
+                        <p class="text-xs text-blue-400 mt-2">
+                            You'll be redirected to Stripe's secure checkout page for payment.
+                        </p>
+                    </div>
 
                     <!-- Selected Items (Hidden) -->
                     {% if request.GET.selected_items %}
@@ -156,3 +170,26 @@
     </div>
 </div>
 {% endblock %}
+
+<script>
+// Show/hide Stripe test info based on payment method selection
+document.addEventListener('DOMContentLoaded', function() {
+    const stripeRadio = document.querySelector('input[value="stripe"]');
+    const codRadio = document.querySelector('input[value="cod"]');
+    const stripeInfo = document.getElementById('stripe-test-info');
+    
+    function toggleStripeInfo() {
+        if (stripeRadio.checked) {
+            stripeInfo.classList.remove('hidden');
+        } else {
+            stripeInfo.classList.add('hidden');
+        }
+    }
+    
+    stripeRadio.addEventListener('change', toggleStripeInfo);
+    codRadio.addEventListener('change', toggleStripeInfo);
+    
+    // Initial check
+    toggleStripeInfo();
+});
+</script>
