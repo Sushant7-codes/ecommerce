@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-md mx-auto px-4">
+        <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div class="text-center mb-2">
+                <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">⭐</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Rate Product</h1>
+                <p class="text-gray-600">How would you rate</p>
+                <p class="text-lg font-semibold text-gray-800 mb-2">{{ product.name }}?</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Star Rating -->
+                <div class="mb-6">
+                    <div class="flex justify-center space-x-1 mb-4">
+                        {% for choice in form.rating %}
+                        <label class="cursor-pointer transform hover:scale-125 transition-transform duration-200">
+                            {{ choice.tag }}
+                            <span class="text-4xl {% if choice.choice_value == 5 %}text-yellow-400{% elif choice.choice_value >= 3 %}text-yellow-500{% else %}text-gray-300{% endif %} hover:text-yellow-400 block">
+                                {{ choice.choice_label }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% if form.rating.errors %}
+                    <div class="text-red-600 text-sm text-center mt-2">{{ form.rating.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="flex space-x-3">
+                    <button type="submit" 
+                            class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold transition-colors duration-200 shadow-md">
+                        Submit Rating
+                    </button>
+                    <a href="{% url 'buyer:order_detail' order.order_number %}" 
+                       class="flex-1 bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 font-semibold transition-colors duration-200 text-center flex items-center justify-center shadow-md">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Hide the radio buttons but keep them accessible */
+input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Style the selected rating */
+input[type="radio"]:checked + span {
+    color: #fbbf24 !important; /* amber-400 */
+    transform: scale(1.2);
+}
+</style>
+{% endblock %}
