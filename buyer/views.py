@@ -213,67 +213,80 @@ def checkout(request):
             messages.error(request, "No items selected for checkout.")
             return render(request, 'buyer/checkout.html', {'cart': cart})
         
-        # Calculate total amount
-        total_amount = sum(item.total_price() for item in cart_items)
-        
         try:
-            # Get the seller from the first product
-            first_product_seller = cart_items.first().product.seller
-            
-            # Create order
-            order = Order.objects.create(
-                customer=request.user,
-                seller=first_product_seller,
-                total_amount=total_amount,
-                shipping_address=shipping_address,
-                customer_phone=customer_phone,
-                status='pending'
-            )
-            
-            # Create order items and update stock
+            # GROUP ITEMS BY SELLER - THIS IS THE KEY FIX
+            seller_items = {}
             for cart_item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    product=cart_item.product,
-                    quantity=cart_item.quantity,
-                    price=cart_item.product.price
-                )
+                seller = cart_item.product.seller
+                if seller not in seller_items:
+                    seller_items[seller] = []
+                seller_items[seller].append(cart_item)
+            
+            created_orders = []
+            
+            # CREATE SEPARATE ORDER FOR EACH SELLER
+            for seller, seller_cart_items in seller_items.items():
+                # Calculate total for this seller's items
+                seller_total = sum(item.total_price() for item in seller_cart_items)
                 
-                # Update product stock
-                product = cart_item.product
-                product.stock_quantity -= cart_item.quantity
-                product.save()
+                # Create order for this seller
+                order = Order.objects.create(
+                    customer=request.user,
+                    seller=seller,  # Each order goes to its respective seller
+                    total_amount=seller_total,
+                    shipping_address=shipping_address,
+                    customer_phone=customer_phone,
+                    status='pending'
+                )
+                created_orders.append(order)
+                
+                # Create order items for this seller
+                for cart_item in seller_cart_items:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=cart_item.product,
+                        quantity=cart_item.quantity,
+                        price=cart_item.product.price
+                    )
+                    
+                    # Update product stock
+                    product = cart_item.product
+                    product.stock_quantity -= cart_item.quantity
+                    product.save()
+            
+            # Remove all purchased items from cart
+            cart_items.delete()
             
             # Handle payment method
             if payment_method == 'cod':
-                # Cash on Delivery
-                cart_items.delete()
-                messages.success(request, "Order placed successfully! Pay when you receive your order.")
-                return redirect('buyer:checkout_success', order_number=order.order_number)
+                # Cash on Delivery - all orders remain pending
+                messages.success(request, f"Order placed successfully! {len(created_orders)} separate orders created. Pay when you receive your items.")
+                # Redirect to first order's success page
+                return redirect('buyer:checkout_success', order_number=created_orders[0].order_number)
                 
             elif payment_method == 'stripe':
-                # SIMULATED STRIPE PAYMENT - FOR TESTING
-                # Instead of real Stripe, we'll simulate the payment flow
+                # For Stripe, we need to handle multiple orders
+                # For now, we'll process the first order through Stripe simulation
+                # In a real scenario, you might create a combined Stripe session
                 
-                # Store a fake session ID
+                # Store fake session IDs for all orders
                 import random
                 import string
-                fake_session_id = 'cs_test_' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=24))
-                order.stripe_session_id = fake_session_id
-                order.save()
+                for order in created_orders:
+                    fake_session_id = 'cs_test_' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=24))
+                    order.stripe_session_id = fake_session_id
+                    order.save()
                 
-                # Remove items from cart
-                cart_items.delete()
-                
-                # Show a simulated Stripe payment page
+                # Show simulated Stripe payment page for the combined total
+                combined_total = sum(order.total_amount for order in created_orders)
                 return render(request, 'buyer/stripe_simulation.html', {
-                    'order': order,
-                    'total_amount': total_amount,
+                    'orders': created_orders,
+                    'total_amount': combined_total,
                     'customer_email': customer_email
                 })
             
         except Exception as e:
-            messages.error(request, f"Error creating order: {str(e)}")
+            messages.error(request, f"Error creating orders: {str(e)}")
             return render(request, 'buyer/checkout.html', {'cart': cart})
     
     context = {
@@ -283,7 +296,13 @@ def checkout(request):
 
 @login_required
 def checkout_success(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    first_order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    
+    # Get all orders from this checkout session
+    recent_orders = Order.objects.filter(
+        customer=request.user,
+        created_at__gte=first_order.created_at
+    ).order_by('seller__username')
     
     # Check if this is a Stripe payment
     session_id = request.GET.get('session_id')
@@ -293,17 +312,19 @@ def checkout_success(request, order_number):
             stripe_session = stripe.checkout.Session.retrieve(session_id)
             
             if stripe_session.payment_status == 'paid':
-                order.status = 'paid'
-                order.save()
-                messages.success(request, "Payment successful! Your order has been confirmed.")
+                for order in recent_orders:
+                    order.status = 'paid'
+                    order.save()
+                messages.success(request, f"Payment successful! {recent_orders.count()} orders confirmed.")
             else:
-                messages.warning(request, "Payment pending. Your order will be processed once payment is confirmed.")
+                messages.warning(request, f"Payment pending. Your {recent_orders.count()} orders will be processed once payment is confirmed.")
                 
         except Exception as e:
-            messages.info(request, "Order received! Payment verification in progress.")
+            messages.info(request, f"Orders received! Payment verification in progress for {recent_orders.count()} orders.")
     
     context = {
-        'order': order,
+        'order': first_order,
+        'all_orders': recent_orders,  # Pass all orders to template
     }
     return render(request, 'buyer/checkout_success.html', context)
 
@@ -355,11 +376,19 @@ def stripe_webhook(request):
     
 @login_required
 def stripe_payment_complete(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number, customer=request.user)
+    # Get the first order (we use this as reference)
+    first_order = get_object_or_404(Order, order_number=order_number, customer=request.user)
     
-    # Mark order as paid
-    order.status = 'paid'
-    order.save()
+    # Mark ALL orders from this checkout session as paid
+    # We find related orders by created_at time (orders created around the same time)
+    recent_orders = Order.objects.filter(
+        customer=request.user,
+        created_at__gte=first_order.created_at
+    ).exclude(status='paid')
     
-    messages.success(request, "Payment successful! Your order has been confirmed.")
-    return redirect('buyer:checkout_success', order_number=order.order_number)
+    for order in recent_orders:
+        order.status = 'paid'
+        order.save()
+    
+    messages.success(request, f"Payment successful! {recent_orders.count()} orders have been confirmed.")
+    return redirect('buyer:checkout_success', order_number=first_order.order_number)
